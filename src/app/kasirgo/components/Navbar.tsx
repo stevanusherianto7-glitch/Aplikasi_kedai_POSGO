@@ -54,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onBack,
             className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all border-2 ${activeTab === 'pengeluaran' ? 'bg-rose-50 text-rose-600 border-rose-600 shadow-sm' : 'bg-white text-slate-500 border-slate-100 hover:bg-slate-50 hover:border-slate-200'}`}
           >
             <ArrowDownCircle size={20} className="mb-1" /> 
-            <span className="text-[10px] font-bold truncate w-full text-center">Keluar</span>
+            <span className="text-[10px] font-bold truncate w-full text-center tracking-tight">Expenses</span>
           </button>
 
           <button 
@@ -62,7 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onBack,
             className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all border-2 ${activeTab === 'pemasukan' ? 'bg-emerald-50 text-emerald-600 border-emerald-600 shadow-sm' : 'bg-white text-slate-500 border-slate-100 hover:bg-slate-50 hover:border-slate-200'}`}
           >
             <ArrowUpCircle size={20} className="mb-1" /> 
-            <span className="text-[10px] font-bold truncate w-full text-center">Masuk</span>
+            <span className="text-[10px] font-bold truncate w-full text-center tracking-tight">Incomes</span>
           </button>
 
           <button 

@@ -478,7 +478,7 @@ function KasirGoContent({
               <div className="md:hidden fixed bottom-24 left-6 right-6 z-30">
                  <button
                   onClick={() => setIsBillingOpen(true)}
-                  className="w-full h-16 bg-blue-600 text-white rounded-[1.5rem] shadow-2xl shadow-blue-500/40 flex items-center justify-between px-8 active:scale-95 transition-all"
+                  className="w-full h-16 bg-blue-600/40 backdrop-blur-xl border border-white/20 text-white rounded-[1.5rem] shadow-2xl flex items-center justify-between px-8 active:scale-95 transition-all"
                  >
                     <div className="flex items-center gap-3">
                        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center font-black text-[10px]">{cart.reduce((s, i) => s + i.quantity, 0)}</div>
@@ -530,6 +530,8 @@ function KasirGoContent({
                   setNewExpense={setNewExpense}
                   onAdd={handleAddExpenseLocal}
                   formatInputNumber={formatInputNumber}
+                  viewMode={pengeluaranSubTab}
+                  setViewMode={setPengeluaranSubTab}
                 />
 
                 <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
@@ -539,10 +541,6 @@ function KasirGoContent({
                     filterMonth={filterMonth}
                     viewMode={pengeluaranSubTab}
                   />
-                  <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-end gap-2">
-                    <button onClick={() => setPengeluaranSubTab('harian')} className={cn("px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all", pengeluaranSubTab === 'harian' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 bg-white border border-slate-200')}>Harian</button>
-                    <button onClick={() => setPengeluaranSubTab('bulanan')} className={cn("px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all", pengeluaranSubTab === 'bulanan' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 bg-white border border-slate-200')}>Bulanan</button>
-                  </div>
                 </div>
               </div>
             </motion.div>
@@ -562,6 +560,8 @@ function KasirGoContent({
                   setNewDailyIncome={setNewDailyIncome}
                   onAdd={handleAddDailyIncomeLocal}
                   formatInputNumber={formatInputNumber}
+                  viewMode={pemasukanSubTab}
+                  setViewMode={setPemasukanSubTab}
                 />
 
                 <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
@@ -571,10 +571,6 @@ function KasirGoContent({
                     filterMonth={filterMonth}
                     viewMode={pemasukanSubTab}
                   />
-                  <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-end gap-2">
-                    <button onClick={() => setPemasukanSubTab('harian')} className={cn("px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all", pemasukanSubTab === 'harian' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-500 bg-white border border-slate-200')}>Harian</button>
-                    <button onClick={() => setPemasukanSubTab('bulanan')} className={cn("px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all", pemasukanSubTab === 'bulanan' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-500 bg-white border border-slate-200')}>Bulanan</button>
-                  </div>
                 </div>
               </div>
             </motion.div>
@@ -588,15 +584,15 @@ function KasirGoContent({
               exit={{ opacity: 0, scale: 0.95 }}
               className="h-full overflow-y-auto p-6 pb-32"
             >
-              <div className="max-w-5xl mx-auto space-y-6">
-                <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner">
-                      <LayoutDashboard size={24} />
+              <div className="max-w-5xl mx-auto space-y-4">
+                <div className="bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner">
+                      <LayoutDashboard size={20} />
                     </div>
                     <div className="flex flex-col">
-                      <h3 className="font-black text-base tracking-tight text-slate-800 uppercase">Riwayat Transaksi</h3>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pusat Data & Rekapitulasi</p>
+                      <h3 className="font-black text-sm tracking-tight text-slate-800 uppercase">Riwayat Transaksi</h3>
+                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Pusat Data & Rekapitulasi</p>
                     </div>
                   </div>
 
@@ -605,13 +601,12 @@ function KasirGoContent({
                       type="month"
                       value={filterMonth}
                       onChange={(e) => setFilterMonth(e.target.value)}
-                      className="flex-1 md:w-40 h-12 px-4 bg-slate-50 border-none rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                      className="flex-1 md:w-40 h-10 px-4 bg-slate-50 border-none rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
                     />
                   </div>
                 </div>
 
-                <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
+                <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col min-h-[400px]">
                     <div className="flex flex-col">
                       <div className="px-6 py-4 bg-emerald-50/40 border-b border-slate-100 flex flex-col gap-3">
                         <div className="flex items-center justify-between">
@@ -630,15 +625,20 @@ function KasirGoContent({
                         </div>
                       </div>
                       <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto no-scrollbar">
-                        {(filteredTransactions || []).filter(t => formatTransactionNumber(t.timestamp || t.date, t.orderNumber).includes(searchHistory)).map(t => (
+                        {(filteredTransactions || []).filter(t => formatTransactionNumber(t.timestamp || t.date, t.orderNumber).includes(searchHistory)).map((t, index) => (
                           <div key={t.id} className="p-4 hover:bg-slate-50 transition-colors flex justify-between items-center group">
                             <div className="flex-1">
-                              <div className="flex justify-between items-start mb-2">
-                                <div>
-                                  <p className="font-bold text-slate-800 text-sm">#{formatTransactionNumber(t.timestamp || t.date, t.orderNumber)}</p>
+                              <div className="flex justify-between items-start mb-2 gap-4">
+                                <div className="space-y-0.5 shrink-0">
+                                  <div className="flex items-center gap-2">
+                                     <span className="text-[9px] font-black bg-slate-800 text-white px-1.5 py-0.5 rounded">NO.{index + 1}</span>
+                                     <p className="font-bold text-slate-800 text-sm">#{formatTransactionNumber(t.timestamp || t.date, t.orderNumber)}</p>
+                                  </div>
                                   <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">{formatDate(t.timestamp || t.date)} • {t.paymentMethod || 'Tunai'}</p>
                                 </div>
-                                <span className="font-black text-emerald-600 text-sm">{formatIDR(t.totalPrice || t.total || 0)}</span>
+                                <div className="flex-1 text-right">
+                                  <span className="font-black text-emerald-600 text-sm whitespace-nowrap">{formatIDR(t.totalPrice || t.total || 0)}</span>
+                                </div>
                               </div>
                               <div className="flex flex-wrap gap-1">
                                 {(t.items || []).map((item: any, idx: number) => (
@@ -658,21 +658,6 @@ function KasirGoContent({
                         ))}
                       </div>
                     </div>
-
-                    <div className="flex flex-col bg-slate-50/20 p-16 text-center text-slate-400 italic text-sm">
-                       Fitur Tambahan Laporan Segera Hadir
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-8 flex justify-end">
-                  <button
-                    onClick={() => setIsSettingsOpen(true)}
-                    className="flex items-center gap-2 px-6 h-12 bg-white border border-slate-200 rounded-xl text-slate-600 active:scale-95 transition-all shadow-sm"
-                  >
-                    <Settings size={18} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Katalog Menu</span>
-                  </button>
                 </div>
               </div>
             </motion.div>
@@ -680,30 +665,31 @@ function KasirGoContent({
         </AnimatePresence>
       </main>
 
-      {/* --- MODAL SETTINGS --- */}
+      {/* --- MODAL SETTINGS (MANAJEMEN MENU KASIR) --- */}
       {isSettingsOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
           <div className="bg-white rounded-[2.5rem] w-full max-w-sm p-6 shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
-            <div className="flex items-center justify-between mb-6 shrink-0">
-              <div className="space-y-1">
-                <h3 className="font-black text-lg tracking-tight text-slate-800 uppercase">Manajemen Menu</h3>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Update Katalog Kedai</p>
+            <div className="flex items-center justify-between mb-4 shrink-0">
+              <div className="space-y-0.5">
+                <h3 className="font-black text-sm tracking-tight text-slate-800 uppercase">Manajemen Menu Kasir</h3>
+                <p className="text-[7px] font-bold text-slate-400 uppercase tracking-[0.2em]">Update Katalog Jualan</p>
               </div>
-              <button onClick={() => { setIsSettingsOpen(false); setEditingRecipeId(null); }} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all"><X size={20}/></button>
+              <button onClick={() => { setIsSettingsOpen(false); setEditingRecipeId(null); }} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all"><X size={16}/></button>
             </div>
 
-            <div className="flex-1 overflow-y-auto no-scrollbar space-y-8 pr-1">
-              <div className="space-y-6 bg-slate-50/50 p-5 rounded-3xl border border-slate-100">
-                <div className="flex items-center gap-2 mb-2">
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pr-1">
+              {/* FORM INPUT MENU BARU */}
+              <div className="space-y-4 bg-slate-50/50 p-4 rounded-3xl border border-slate-100">
+                <div className="flex items-center gap-2 mb-1">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
                     {editingRecipeId ? 'Edit Menu Terpilih' : 'Daftar Menu Baru'}
                   </span>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Produk</label>
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Produk</label>
                     <input
                       placeholder="CONTOH: ES TEH MANIS"
                       value={editingRecipeId ? editMenuData.name : newItem.name}
@@ -712,56 +698,58 @@ function KasirGoContent({
                         if (editingRecipeId) setEditMenuData({...editMenuData, name: val});
                         else setNewItem({...newItem, name: val});
                       }}
-                      className="w-full h-12 px-4 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      className="w-full h-10 px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Kategori</label>
-                    <div className="flex gap-1.5 p-1 bg-white rounded-xl border border-slate-200">
-                      {['Makanan', 'Minuman', 'Pelengkap'].map(cat => (
-                        <button
-                          key={cat}
-                          onClick={() => {
-                            if (editingRecipeId) setEditMenuData({...editMenuData, category: cat});
-                            else setNewItem({...newItem, category: cat});
-                          }}
-                          className={cn(
-                            "flex-1 h-8 rounded-lg text-[8px] font-black uppercase tracking-tight transition-all",
-                            (editingRecipeId ? editMenuData.category : newItem.category) === cat
-                              ? (cat === 'Makanan' ? "bg-orange-500 text-white shadow-sm" : "bg-slate-900 text-white shadow-sm")
-                              : "text-slate-400 hover:text-slate-600"
-                          )}
-                        >
-                          {cat}
-                        </button>
-                      ))}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Kategori</label>
+                      <div className="flex gap-1 p-0.5 bg-white rounded-xl border border-slate-200">
+                        {['Makanan', 'Minuman', 'Pelengkap'].map(cat => (
+                          <button
+                            key={cat}
+                            onClick={() => {
+                              if (editingRecipeId) setEditMenuData({...editMenuData, category: cat});
+                              else setNewItem({...newItem, category: cat});
+                            }}
+                            className={cn(
+                              "flex-1 h-7 rounded-lg text-[7px] font-black uppercase transition-all",
+                              (editingRecipeId ? editMenuData.category : newItem.category) === cat
+                                ? (cat === 'Makanan' ? "bg-orange-500 text-white shadow-sm" : "bg-slate-900 text-white shadow-sm")
+                                : "text-slate-400 hover:text-slate-600"
+                            )}
+                          >
+                            {cat.substring(0, 3)}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Harga Jual</label>
-                    <div className="relative">
-                      <input
-                        placeholder="0"
-                        value={editingRecipeId ? editMenuData.price : newItem.price}
-                        onChange={(e) => {
-                          const val = formatInputNumber(e.target.value);
-                          if (editingRecipeId) setEditMenuData({...editMenuData, price: val});
-                          else setNewItem({...newItem, price: val});
-                        }}
-                        className="w-full h-12 pl-10 pr-4 rounded-xl bg-white border border-slate-200 text-base font-black text-blue-600 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                      />
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">RP</span>
+                    <div className="space-y-1">
+                      <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Harga Jual</label>
+                      <div className="relative">
+                        <input
+                          placeholder="0"
+                          value={editingRecipeId ? editMenuData.price : newItem.price}
+                          onChange={(e) => {
+                            const val = formatInputNumber(e.target.value);
+                            if (editingRecipeId) setEditMenuData({...editMenuData, price: val});
+                            else setNewItem({...newItem, price: val});
+                          }}
+                          className="w-full h-10 pl-8 pr-3 rounded-xl bg-white border border-slate-200 text-sm font-black text-blue-600 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-slate-300">RP</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-2">
                   {editingRecipeId ? (
                     <>
-                      <button onClick={() => setEditingRecipeId(null)} className="flex-1 h-12 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl transition-all">Batal</button>
-                      <button onClick={handleSaveEditMenu} className="flex-[2] h-12 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.1em] shadow-lg shadow-blue-100 active:scale-95 transition-all">Simpan Perubahan</button>
+                      <button onClick={() => setEditingRecipeId(null)} className="flex-1 h-10 text-slate-400 font-bold text-[9px] uppercase tracking-widest hover:bg-slate-100 rounded-xl transition-all">Batal</button>
+                      <button onClick={handleSaveEditMenu} className="flex-[2] h-10 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-[0.1em] shadow-lg shadow-blue-100 active:scale-95 transition-all">Simpan</button>
                     </>
                   ) : (
                     <button
@@ -780,11 +768,11 @@ function KasirGoContent({
                             shrinkagePercent: 0,
                             items: []
                           });
-                          alert('Menu berhasil ditambahkan!');
+                          alert('Menu didaftarkan!');
                           setNewItem({ name: '', price: '', category: 'Makanan' });
                         }
                       }}
-                      className="w-full h-12 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-blue-100 active:scale-95 transition-all"
+                      className="w-full h-10 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-[0.2em] shadow-lg shadow-blue-100 active:scale-95 transition-all"
                     >
                       Daftarkan Menu
                     </button>
@@ -792,28 +780,42 @@ function KasirGoContent({
                 </div>
               </div>
 
-              <div className="space-y-4">
+              {/* LISTING MENU SAAT INI */}
+              <div className="space-y-2">
                 <div className="flex items-center justify-between px-1">
-                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Katalog Menu Saat Ini</span>
-                   <span className="text-[8px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{(recipes || []).length} Produk</span>
+                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Katalog Jualan</span>
+                   <span className="text-[7px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{(recipes || []).length} Produk</span>
                 </div>
 
-                <div className="space-y-2 pb-10">
+                <div className="space-y-1.5 pb-10">
                   {(recipes || []).map(recipe => (
                     <div key={recipe?.id} className={cn(
-                      "p-4 rounded-2xl border transition-all flex items-center justify-between group",
+                      "p-3 rounded-2xl border transition-all flex items-center justify-between group",
                       editingRecipeId === recipe?.id ? "bg-blue-50 border-blue-200" : "bg-white border-slate-100 hover:border-slate-200"
                     )}>
                       <div className="space-y-0.5">
-                        <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none">{recipe?.name}</h4>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[8px] font-bold text-blue-500 uppercase">{recipe?.category}</span>
-                          <span className="text-[10px] font-black text-slate-400">Rp {formatNumber(recipe?.roundedSellingPrice || recipe?.sellingPrice)}</span>
+                        <h4 className="text-[10px] font-black text-slate-800 uppercase leading-none">{recipe?.name}</h4>
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn(
+                             "text-[7px] font-bold uppercase px-1.5 py-0.5 rounded",
+                             recipe?.category === 'Makanan' ? "bg-orange-50 text-orange-600" : "bg-blue-50 text-blue-600"
+                          )}>{recipe?.category}</span>
+                          <span className="text-[9px] font-black text-slate-400">Rp {formatNumber(recipe?.roundedSellingPrice || recipe?.sellingPrice)}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleEditMenu(recipe)} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50"><Pencil size={14} /></button>
-                        <button onClick={() => handleDeleteMenu(recipe?.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50"><Trash2 size={14} /></button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleEditMenu(recipe); }}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 bg-blue-50 active:bg-blue-100 transition-all shadow-sm"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDeleteMenu(recipe?.id); }}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-600 bg-rose-50 active:bg-rose-100 transition-all shadow-sm"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
                   ))}

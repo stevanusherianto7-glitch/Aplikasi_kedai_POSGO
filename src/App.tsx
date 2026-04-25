@@ -283,6 +283,7 @@ function AppContent() {
                 onAddIngredient={state.handleAddIngredient}
                 onUpdateIngredient={state.handleUpdateIngredient}
                 onDeleteIngredient={state.deleteIngredient}
+                onAddRecipe={state.handleAddRecipe}
                 onUpdateRecipe={state.handleUpdateRecipe}
                 onDeleteRecipe={state.handleDeleteRecipe}
                 theme={state.theme}

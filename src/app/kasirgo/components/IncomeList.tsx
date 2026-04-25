@@ -13,13 +13,20 @@ interface IncomeListProps {
 
 export const IncomeList: React.FC<IncomeListProps> = ({ incomes, onDelete, filterMonth, viewMode }) => {
   const filtered = incomes.filter(i => {
-    if (!filterMonth || viewMode === 'bulanan') return true;
+    if (!filterMonth) return true;
     try {
       const d = new Date(i.date);
       if (isNaN(d.getTime())) return true;
-      const iDate = d.toISOString().substring(0, 10);
-      const today = new Date().toISOString().substring(0, 10);
-      return iDate === today;
+
+      if (viewMode === 'harian') {
+        const iDate = d.toISOString().substring(0, 10);
+        const today = new Date().toISOString().substring(0, 10);
+        return iDate === today;
+      } else {
+        // Mode Bulanan: Filter berdasarkan bulan yang dipilih (format YYYY-MM)
+        const iMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        return iMonth === filterMonth;
+      }
     } catch (err) {
       return true;
     }

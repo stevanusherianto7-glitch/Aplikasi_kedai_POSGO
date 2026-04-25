@@ -6,14 +6,17 @@ interface ExpenseFormProps {
   setNewExpense: (val: any) => void;
   onAdd: () => void;
   formatInputNumber: (val: string) => string;
+  viewMode: 'harian' | 'bulanan';
+  setViewMode: (mode: 'harian' | 'bulanan') => void;
 }
 
 export const ExpenseForm: React.FC<ExpenseFormProps> = ({
-  newExpense, setNewExpense, onAdd, formatInputNumber
+  newExpense, setNewExpense, onAdd, formatInputNumber, viewMode, setViewMode
 }) => {
   return (
     <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-4">
-      <div className="flex items-center gap-3 mb-2">
+      {/* 1. JUDUL STAND ALONE */}
+      <div className="flex items-center gap-3">
         <div className="w-10 h-10 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center shadow-inner">
           <ArrowDownCircle size={20} />
         </div>
@@ -21,6 +24,22 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
           <h3 className="font-black text-sm text-slate-800 uppercase tracking-tight">Catat Pengeluaran</h3>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Operasional Kedai</p>
         </div>
+      </div>
+
+      {/* 2. FILTER TAB DI BAWAH JUDUL */}
+      <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-100 w-full">
+         <button
+           onClick={() => setViewMode('harian')}
+           className={`flex-1 h-9 rounded-lg text-[10px] font-black uppercase transition-all ${viewMode === 'harian' ? 'bg-white text-rose-600 shadow-sm border border-slate-100' : 'text-slate-400'}`}
+         >
+           Harian
+         </button>
+         <button
+           onClick={() => setViewMode('bulanan')}
+           className={`flex-1 h-9 rounded-lg text-[10px] font-black uppercase transition-all ${viewMode === 'bulanan' ? 'bg-white text-rose-600 shadow-sm border border-slate-100' : 'text-slate-400'}`}
+         >
+           Bulanan
+         </button>
       </div>
 
       <div className="space-y-4">

@@ -110,10 +110,16 @@ export default function RestaurantAssetsPage({
   // Actions
   const handleSaveAsset = async () => {
     if (!newAsset.name) return;
-    await onSaveAsset(newAsset, editingAsset?.id || null);
-    setIsAddingAsset(false);
-    setEditingAsset(null);
-    setNewAsset({ name: '', category: 'Dapur', quantity: 1, price: 0, condition: 'Bagus', location: 'Dapur Utama' });
+    const result = await onSaveAsset(newAsset, editingAsset?.id || null);
+
+    if ((result as any)?.success !== false) {
+      setIsAddingAsset(false);
+      setEditingAsset(null);
+      setNewAsset({ name: '', category: 'Dapur', quantity: 1, price: 0, condition: 'Bagus', location: 'Dapur Utama' });
+      alert('Item tersebut telah tersimpan');
+    } else {
+      alert('GAGAL SIMPAN: ' + (result as any)?.message);
+    }
   };
 
   const handleDeleteAsset = async (id: string) => {
@@ -552,13 +558,13 @@ export default function RestaurantAssetsPage({
                 </div>
 
                 <div className="space-y-0.5">
-                  <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Qty</label>
+                  <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">QTY</label>
                   <input
-                    type="number"
-                    value={newAsset.quantity}
-                    onChange={e => setNewAsset({...newAsset, quantity: Number(e.target.value)})}
+                    placeholder="0"
+                    value={formatNumber(newAsset.quantity)}
+                    onChange={e => setNewAsset({...newAsset, quantity: parseNumber(e.target.value)})}
                     className={cn(
-                      "w-full h-9 px-4 rounded-xl text-xs font-bold outline-none",
+                      "w-full h-9 px-4 rounded-xl text-xs font-black outline-none",
                       theme === 'dark' ? "bg-white/5 border border-white/10 text-white" : "bg-slate-50 border-none text-slate-900"
                     )}
                   />

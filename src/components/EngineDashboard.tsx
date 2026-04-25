@@ -86,7 +86,7 @@ export function EngineDashboard({
     },
     {
       id: 'restaurant-assets',
-      title: 'RESTAURANT ASSETS',
+      title: 'KEDAI ASSETS',
       subtitle: 'Manajemen Aset & Peralatan',
       icon: Package,
       color: 'bg-blue-600',
@@ -115,12 +115,12 @@ export function EngineDashboard({
         theme === 'dark' ? "bg-[#0a0a0c]/80 border-white/5 shadow-2xl shadow-black/40" : "bg-white/80 border-slate-200 shadow-sm"
       )}>
         <div className="flex flex-col">
-          <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary block leading-tight mb-1">Resto ERP Engine</span>
+          <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary block leading-tight mb-1">Kedai ERP Engine</span>
           <h1 className={cn(
             "text-xs font-black tracking-[0.1em] uppercase leading-none",
             theme === 'dark' ? "text-white" : "text-slate-900"
           )}>
-            POSGO<span className="text-primary ml-1">57</span>
+            POSGO<span className="text-primary ml-1">57</span> SYSTEM
           </h1>
         </div>
         

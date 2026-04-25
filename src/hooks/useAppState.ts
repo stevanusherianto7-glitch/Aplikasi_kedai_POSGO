@@ -35,38 +35,19 @@ export function useAppState() {
     try {
       setIsSyncing(true);
       if (supabase) {
-        const results = await Promise.all([
-          supabase.from('ingredients').select('*'),
-          supabase.from('hpp_recipes').select('*, recipe_items(*)'),
-          supabase.from('employees').select('*'),
-          supabase.from('riwayat_transaksi').select('*, order_items(*)').order('created_at', { ascending: false }).limit(100),
-          supabase.from('catatan pengeluaran harian').select('*').order('created_at', { ascending: false }),
-          supabase.from('kedai_assets').select('*'),
-          supabase.from('kedai_maintenance_logs').select('*').order('date', { ascending: false }),
-          supabase.from('absensi').select('*'),
-          supabase.from('app_config').select('*'),
-          supabase.from('pemasukan_harian').select('*'),
-          supabase.from('shift_patterns').select('*'),
-          supabase.from('katalog _menu_baru').select('*')
-        ]);
-
-        const [ingD, recD, empD, txD, expD, assetD, logsD, attD, confD, incD, pattD, catalogD] = results.map(r => r.data || []);
-
-        // ─── DATA PARITY CHECK: HPP vs Catalog ───
-        if (recD.length > 0 && catalogD) {
-          const catalogNames = new Set(catalogD.map((c: any) => c.name));
-          const missingInCatalog = recD.filter((r: any) => !catalogNames.has(r.name));
-
-          if (missingInCatalog.length > 0) {
-            console.log(`Syncing ${missingInCatalog.length} missing recipes to catalog...`);
-            await supabase.from('katalog _menu_baru').insert(missingInCatalog.map((r: any) => ({
-              name: r.name,
-              menu_kasir: r.category || 'Makanan',
-              price: r.rounded_selling_price || r.selling_price || 0,
-              user_id: DEFAULT_USER_ID
-            })));
-          }
-        }
+        // Safe Individual Fetches to ensure visibility even if one table has schema issues
+        const { data: ingD } = await supabase.from('ingredients').select('*');
+        const { data: recD } = await supabase.from('hpp_recipes').select('*');
+        const { data: recItemsD } = await supabase.from('recipe_items').select('*');
+        const { data: empD } = await supabase.from('employees').select('*');
+        const { data: txD } = await supabase.from('riwayat_transaksi').select('*, order_items(*)').order('created_at', { ascending: false }).limit(100);
+        const { data: expD } = await supabase.from('catatan pengeluaran harian').select('*').order('created_at', { ascending: false });
+        const { data: assetD } = await supabase.from('kedai_assets').select('*');
+        const { data: logsD } = await supabase.from('kedai_maintenance_logs').select('*').order('date', { ascending: false });
+        const { data: attD } = await supabase.from('absensi').select('*');
+        const { data: confD } = await supabase.from('app_config').select('*');
+        const { data: incD } = await supabase.from('pemasukan_harian').select('*');
+        const { data: shiftData } = await supabase.from('shifts').select('*');
 
         if (confD) {
           const t = confD.find((s: any) => s.id === 'theme');
@@ -75,49 +56,35 @@ export function useAppState() {
           if (p) setPettyCash(Number(p.value));
         }
 
-        if (pattD.length > 0) {
-          const m: Record<string, ShiftType[]> = {};
-          pattD.forEach((p: any) => {
-            try { m[p.employee_id] = typeof p.pattern === 'string' ? JSON.parse(p.pattern) : p.pattern; } catch (e) {}
-          });
-          setWeeklyPattern(m);
-        }
-
         if (ingD) setIngredients(ingD.map((i: any) => ({
           id: i.id, name: i.name, category: i.category, purchasePrice: Number(i.purchase_price),
           purchaseUnit: i.purchase_unit, useUnit: i.use_unit as Unit, conversionValue: Number(i.conversion_value),
           stockQuantity: Number(i.stock_quantity), lowStockThreshold: Number(i.low_stock_threshold)
         })));
 
-        if (recD) setRecipes(recD.map((r: any) => ({
-          id: r.id, name: r.name, category: r.category || 'Makanan', sellingPrice: Number(r.selling_price),
-          markupPercent: Number(r.markup_percent), laborCost: Number(r.labor_cost), overheadCost: Number(r.overhead_cost),
-          shrinkagePercent: Number(r.shrinkage_percent), roundedSellingPrice: r.rounded_selling_price ? Number(r.rounded_selling_price) : undefined,
-          items: (r.recipe_items || []).map((ri: any) => ({ id: ri.id, ingredientId: ri.ingredient_id, quantityNeeded: Number(ri.quantity_needed) }))
-        })));
+        if (recD) {
+          const items = recItemsD || [];
+          setRecipes(recD.map((r: any) => ({
+            id: r.id, name: r.name, category: r.category || 'Makanan',
+            sellingPrice: Number(r.selling_price || 0),
+            markupPercent: Number(r.markup_percent || 0), laborCost: Number(r.labor_cost || 0), overheadCost: Number(r.overhead_cost || 0),
+            shrinkagePercent: Number(r.shrinkage_percent || 0), roundedSellingPrice: r.rounded_selling_price ? Number(r.rounded_selling_price) : undefined,
+            items: items.filter((ri: any) => ri.recipe_id === r.id).map((ri: any) => ({ id: ri.id, ingredientId: ri.ingredient_id, quantityNeeded: Number(ri.quantity_needed) }))
+          })));
+        }
 
         if (empD) setEmployees(empD.map((e: any) => ({ id: e.id, name: e.name, role: e.role, salary: Number(e.salary), avatarColor: e.avatar_color, initials: e.initials })));
-
-        if (txD) setTransactions(txD.map((t: any) => ({
-          id: t.id, date: t.created_at, totalPrice: Number(t.total_amount), totalHpp: 0,
-          paymentMethod: t.payment_method || 'Tunai', timestamp: new Date(t.created_at), orderNumber: t.order_number,
-          items: (t.order_items || []).map((oi: any) => ({ recipeId: oi.recipe_id, quantity: oi.quantity, price: Number(oi.subtotal) / (oi.quantity || 1) }))
-        })));
-
+        if (txD) setTransactions(txD.map((t: any) => ({ id: t.id, date: t.created_at, totalPrice: Number(t.total_amount), totalHpp: 0, paymentMethod: t.payment_method || 'Tunai', timestamp: new Date(t.created_at), orderNumber: t.order_number, items: (t.order_items || []).map((oi: any) => ({ recipeId: oi.recipe_id, quantity: oi.quantity, price: Number(oi.subtotal) / (oi.quantity || 1) })) })));
         if (expD) setExpenses(expD.map((e: any) => ({ id: e.id, date: e.created_at, description: e.description, amount: Number(e.amount), category: e.category })));
         if (assetD) setRestaurantAssets(assetD.map((a: any) => ({ id: a.id, name: a.name, category: a.category, quantity: Number(a.quantity), price: Number(a.price), condition: a.condition, location: a.location })));
         if (logsD) setMaintenanceLogs(logsD);
         if (attD) setAttendances(attD.map((a: any) => ({ id: a.id, employeeId: a.employee_id, date: a.date, status: a.status as any })));
 
-        if (shiftD) {
+        if (shiftData) {
           const ms: Record<string, Record<string, ShiftType>> = {};
-          shiftD.forEach((s: any) => {
-            if (!ms[s.employee_id]) ms[s.employee_id] = {};
-            ms[s.employee_id][s.date] = s.type as ShiftType;
-          });
+          shiftData.forEach((s: any) => { if (!ms[s.employee_id]) ms[s.employee_id] = {}; ms[s.employee_id][s.date] = s.type as ShiftType; });
           setShifts(ms);
         }
-
         if (incD) setDailyIncomes(incD.map((i: any) => ({ id: i.id, date: i.timestamp, description: i.description, amount: Number(i.amount), category: 'Pemasukan' as any })));
       }
     } catch (e) { console.error("Data load error:", e); }

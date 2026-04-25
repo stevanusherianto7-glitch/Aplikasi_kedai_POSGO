@@ -13,13 +13,20 @@ interface ExpenseListProps {
 
 export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, filterMonth, viewMode }) => {
   const filtered = expenses.filter(e => {
-    if (!filterMonth || viewMode === 'bulanan') return true;
+    if (!filterMonth) return true;
     try {
       const d = new Date(e.date);
       if (isNaN(d.getTime())) return true;
-      const eDate = d.toISOString().substring(0, 10);
-      const today = new Date().toISOString().substring(0, 10);
-      return eDate === today;
+
+      if (viewMode === 'harian') {
+        const eDate = d.toISOString().substring(0, 10);
+        const today = new Date().toISOString().substring(0, 10);
+        return eDate === today;
+      } else {
+        // Mode Bulanan: Filter berdasarkan bulan yang dipilih (format YYYY-MM)
+        const eMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        return eMonth === filterMonth;
+      }
     } catch (err) {
       return true;
     }

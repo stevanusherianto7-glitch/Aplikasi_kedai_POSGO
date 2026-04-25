@@ -60,7 +60,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
           <div className="space-y-0.5">
             <h2 className="text-2xl font-black text-slate-900 tracking-tighter italic">
-              PosGO<span className="text-emerald-500 not-italic ml-1">57</span>
+              PosGO<span className="text-emerald-500 not-italic ml-1">57</span> System
             </h2>
             <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider">Inventory Control</p>
           </div>

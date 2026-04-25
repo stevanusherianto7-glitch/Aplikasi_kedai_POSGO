@@ -420,7 +420,7 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
               onClick={() => setIsAddingRecipe(true)}
               className="h-12 w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-md shadow-blue-500/20"
             >
-              BUAT RESEP BARU
+              BUAT MENU BARU
             </Button>
           </div>
         )}
@@ -458,7 +458,7 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
               isAddingRecipe={isAddingRecipe}
               setIsAddingRecipe={setIsAddingRecipe}
               hideHeader={true}
-              onAddRecipe={onUpdateRecipe} // Usually add is separate, but BahanManager doesn't pass onAddRecipe yet
+              onAddRecipe={onAddRecipe}
               onUpdateRecipe={onUpdateRecipe}
               onDeleteRecipe={onDeleteRecipe}
             />
