@@ -21,21 +21,37 @@ import { X } from "lucide-react";
 import KasirGoPage from "./app/kasirgo/page";
 import RestaurantAssetsPage from "./app/restaurant-assets/page";
 
-class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
   constructor(props: {children: React.ReactNode}) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
-  static getDerivedStateFromError() { return { hasError: true }; }
+  static getDerivedStateFromError(error: any) { return { hasError: true, error }; }
   componentDidCatch(error: any, errorInfo: any) { console.error("ErrorBoundary caught an error", error, errorInfo); }
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 text-center">
-          <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-slate-900">Ups! Terjadi kesalahan.</h1>
-            <p className="text-slate-500">Silakan muat ulang halaman atau hubungi pengembang.</p>
-            <button onClick={() => window.location.reload()} className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold">Muat Ulang</button>
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6 text-center">
+          <div className="space-y-6 max-w-md">
+            <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+               <X size={32} />
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">System Exception Detected</h1>
+              <p className="text-sm text-slate-500 font-medium">A component crashed during render. This has been logged for engineering review.</p>
+            </div>
+
+            <div className="bg-slate-900 text-slate-300 p-4 rounded-2xl text-[10px] text-left font-mono overflow-auto max-h-48 border border-white/10">
+              <p className="text-rose-400 font-bold mb-1 uppercase">[Error Message]</p>
+              {this.state.error?.message || "Unknown Error"}
+              <p className="text-blue-400 font-bold mt-3 mb-1 uppercase">[Stack Trace]</p>
+              <p className="opacity-50 whitespace-pre-wrap">{this.state.error?.stack?.split('\n').slice(0, 3).join('\n')}</p>
+            </div>
+
+            <div className="flex gap-3">
+               <button onClick={() => window.location.reload()} className="flex-1 h-12 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest active:scale-95 transition-all">Reload App</button>
+               <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="flex-1 h-12 border border-slate-200 text-slate-400 rounded-xl font-bold text-xs uppercase tracking-widest active:scale-95 transition-all">Clear Cache</button>
+            </div>
           </div>
         </div>
       );

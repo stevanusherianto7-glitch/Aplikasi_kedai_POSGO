@@ -59,6 +59,7 @@ interface BahanManagerProps {
   onAddIngredient?: (ingredient: Partial<Ingredient>) => Promise<void>;
   onUpdateIngredient?: (ingredient: Ingredient) => Promise<void>;
   onDeleteIngredient?: (id: string) => Promise<void>;
+  onAddRecipe?: (recipe: Recipe) => Promise<void>;
   onUpdateRecipe?: (recipe: Recipe) => Promise<void>;
   onDeleteRecipe?: (id: string) => Promise<void>;
   theme?: 'light' | 'dark';
@@ -77,6 +78,7 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
   onAddIngredient,
   onUpdateIngredient,
   onDeleteIngredient,
+  onAddRecipe,
   onUpdateRecipe,
   onDeleteRecipe,
   theme = 'light',
@@ -190,28 +192,28 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
   const selectedRecipe = recipes.find(r => r.id === selectedRecipeId);
   
   const filteredIngredients = selectedRecipeId 
-    ? ingredients.filter(ing => selectedRecipe?.items.some(item => item.ingredientId === ing.id))
+    ? ingredients.filter(ing => (selectedRecipe?.items || []).some(item => item.ingredientId === ing.id))
     : ingredients;
 
   return (
     <div className={cn(
       "space-y-6 font-sans pb-10 px-0 min-h-screen transition-colors duration-500",
-      theme === 'dark' ? "bg-[#0a0a0c]" : "bg-transparent"
+      "bg-gradient-to-br from-blue-50 via-slate-50 to-emerald-50"
     )}>
       {/* FIXED DASHBOARD HEADER */}
       <div className={cn(
         "fixed top-0 left-0 right-0 z-50 pt-10 pb-4 text-center px-4 backdrop-blur-xl border-b rounded-b-[3.5rem]",
-        theme === 'dark' ? "bg-black/80 border-white/5 shadow-2xl shadow-black/40" : "bg-white/80 border-slate-200 shadow-sm"
+        "bg-white/80 border-slate-200 shadow-sm"
       )}>
         <h2 className={cn(
           "text-sm font-black tracking-widest uppercase",
-          theme === 'dark' ? "text-white" : "text-slate-900"
+          "text-slate-900"
         )}>
           STOK & HPP DASHBOARD
         </h2>
         <p className={cn(
           "font-black text-[9px] uppercase tracking-[0.2em] opacity-60",
-          theme === 'dark' ? "text-blue-400" : "text-blue-600"
+          "text-blue-600"
         )}>
           Manajemen Food Cost
         </p>
@@ -231,26 +233,24 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
               }}
               className={cn(
                 "relative overflow-hidden group cursor-pointer transition-all duration-300 rounded-[2rem] p-6 border h-24 flex flex-col justify-center shadow-sm",
-                theme === 'dark'
-                  ? "bg-blue-600/20 backdrop-blur-xl border-blue-500/30 hover:bg-blue-600/30 hover:border-blue-500/50 hover:shadow-blue-600/20 shadow-xl"
-                  : "bg-white border-slate-100 hover:bg-blue-50 hover:shadow-lg shadow-slate-200/50"
+                "bg-white border-slate-100 hover:bg-blue-50 hover:shadow-lg shadow-slate-200/50"
               )}
             >
               <div className="relative z-10 space-y-1">
                 <h3 className={cn(
                   "text-sm font-black uppercase tracking-tight leading-none whitespace-nowrap",
-                  theme === 'dark' ? "text-white" : "text-slate-800"
+                  "text-slate-800"
                 )}>
                   DATABASE BAHAN BAKU
                 </h3>
                 <p className={cn(
                   "text-[8px] font-bold uppercase tracking-widest mt-1",
-                  theme === 'dark' ? "text-blue-100/80" : "text-blue-500"
+                  "text-blue-500"
                 )}>
                   {ingredients.length} MATERIAL TERDATA
                 </p>
               </div>
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl group-hover:bg-blue-500/30 transition-colors" />
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-colors" />
             </div>
 
             {/* Card 3: RESEP MENU & HPP */}
@@ -260,26 +260,24 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
               }}
               className={cn(
                 "relative overflow-hidden group cursor-pointer transition-all duration-300 rounded-[2rem] p-6 border h-24 flex flex-col justify-center shadow-sm",
-                theme === 'dark'
-                  ? "bg-cyan-600/20 backdrop-blur-xl border-cyan-500/30 hover:bg-cyan-600/30 hover:border-cyan-500/50 hover:shadow-cyan-600/20 shadow-xl"
-                  : "bg-white border-slate-100 hover:bg-cyan-50 hover:shadow-lg shadow-slate-200/50"
+                "bg-white border-slate-100 hover:bg-cyan-50 hover:shadow-lg shadow-slate-200/50"
               )}
             >
               <div className="relative z-10 space-y-1">
                 <h3 className={cn(
                   "text-sm font-black uppercase tracking-tight leading-none whitespace-nowrap",
-                  theme === 'dark' ? "text-white" : "text-slate-800"
+                  "text-slate-800"
                 )}>
                   RESEP MENU & HPP
                 </h3>
                 <p className={cn(
                   "text-[8px] font-bold uppercase tracking-widest mt-1",
-                  theme === 'dark' ? "text-cyan-100/80" : "text-cyan-600"
+                  "text-cyan-600"
                 )}>
                   {recipes.length} MENU TERSEDIA
                 </p>
               </div>
-              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-cyan-500/20 rounded-full blur-3xl group-hover:bg-cyan-500/30 transition-colors" />
+              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-colors" />
             </div>
           </div>
         </>
@@ -308,8 +306,10 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
         {activeManagerTab === 'bahan' && (
           <div className="flex flex-col gap-2 mb-4">
             <Dialog open={isAddingIngredient} onOpenChange={setIsAddingIngredient}>
-              <DialogTrigger render={<Button className="h-12 w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-md shadow-blue-500/20" />}>
-                TAMBAH BAHAN BAKU
+              <DialogTrigger asChild>
+                <Button className="h-12 w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-md shadow-blue-500/20">
+                  TAMBAH BAHAN BAKU
+                </Button>
               </DialogTrigger>
               <DialogContent className="w-[calc(100%-4rem)] sm:max-w-sm mx-auto rounded-[2.5rem] p-0 overflow-hidden border-none shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-white animate-in zoom-in-95 duration-200">
                 {/* Premium Header with Gradient */}

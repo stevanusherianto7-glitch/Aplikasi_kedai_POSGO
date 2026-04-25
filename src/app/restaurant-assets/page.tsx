@@ -49,7 +49,6 @@ interface RestaurantAssetsPageProps {
 }
 
 export default function RestaurantAssetsPage({
-  theme = 'dark',
   assets = [],
   maintenanceLogs = [],
   onSaveAsset,
@@ -116,7 +115,7 @@ export default function RestaurantAssetsPage({
       setIsAddingAsset(false);
       setEditingAsset(null);
       setNewAsset({ name: '', category: 'Dapur', quantity: 1, price: 0, condition: 'Bagus', location: 'Dapur Utama' });
-      alert('Item tersebut telah tersimpan');
+      alert('asset telah disimpan');
     } else {
       alert('GAGAL SIMPAN: ' + (result as any)?.message);
     }
@@ -207,28 +206,22 @@ export default function RestaurantAssetsPage({
   if (!isLoaded) return <div className="p-20 text-center text-slate-400">Loading Assets...</div>;
 
   return (
-    <div className={cn(
-      "min-h-screen pb-32 transition-colors duration-500 no-scrollbar",
-      theme === 'dark' ? "bg-[#0a0a0c]" : "bg-transparent"
-    )}>
-      {/* 1. STICKY HEADER - NEON GLOW STYLE */}
-      <header className={cn(
-        "fixed top-0 left-0 right-0 z-50 px-6 pt-10 pb-6 backdrop-blur-xl border-b rounded-b-[3.5rem] transition-all no-scrollbar",
-        theme === 'dark' ? "bg-black/80 border-white/5 shadow-2xl shadow-black/40" : "bg-white/80 border-slate-200 shadow-sm"
-      )}>
-        <div className="flex flex-col gap-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-emerald-50 pb-32 transition-colors duration-500 no-scrollbar">
+      {/* 1. STICKY HEADER - RESTORED PRO GRID */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 pt-10 pb-6 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm rounded-b-[3.5rem] no-scrollbar">
+        <div className="flex flex-col gap-6 max-w-5xl mx-auto">
           {/* Row 0: Standalone Title */}
           <div className="flex items-center gap-3">
              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
                <Package className="text-white" size={16} />
              </div>
              <div className="flex flex-col">
-               <h1 className={cn("text-sm font-black uppercase tracking-tight", theme === 'dark' ? "text-white" : "text-slate-900")}>INVENTARIS KEDAI</h1>
+               <h1 className="text-sm font-black uppercase tracking-tight text-slate-900">INVENTARIS KEDAI</h1>
                <span className="text-[8px] font-bold text-blue-500 uppercase tracking-widest opacity-60">Asset Management Hub</span>
              </div>
           </div>
 
-          {/* 2 Rows of Buttons (Total 5 buttons) */}
+          {/* 2 Rows of Buttons (Restored to Original Professional Layout) */}
           <div className="space-y-2">
             {/* Row 1: Add and PDF */}
             <div className="grid grid-cols-2 gap-2">
@@ -246,7 +239,7 @@ export default function RestaurantAssetsPage({
               </button>
             </div>
 
-            {/* Row 2: Navigation Tabs */}
+            {/* Row 2: Navigation Tabs (Restored to Original Professional Grid) */}
             <div className="grid grid-cols-3 gap-2">
               {[
                 { id: 'inventory', label: 'Inventory', icon: LayoutDashboard },
@@ -260,7 +253,7 @@ export default function RestaurantAssetsPage({
                     "flex flex-col items-center justify-center gap-1 h-14 rounded-xl text-[7px] font-black uppercase tracking-widest transition-all border-2",
                     activeSubTab === tab.id
                       ? "bg-blue-600/10 text-blue-600 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
-                      : "bg-white text-slate-500 border-slate-300 dark:bg-white/5 dark:border-white/20 shadow-sm"
+                      : "bg-white text-slate-500 border-slate-300 shadow-sm"
                   )}
                 >
                   <tab.icon size={14} />
@@ -273,103 +266,100 @@ export default function RestaurantAssetsPage({
       </header>
 
       {/* 2. MAIN CONTENT AREA */}
-      <main className="pt-80 px-6 space-y-6 no-scrollbar">
+      <main className="pt-80 px-6 space-y-6 no-scrollbar max-w-5xl mx-auto">
         <AnimatePresence mode="wait">
           {activeSubTab === 'inventory' && (
             <motion.div
               key="inv"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-5"
             >
               {/* Search & Filter Row */}
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex gap-2">
                 <div className="flex-1 relative group">
                   <input 
-                    placeholder="Cari aset kedai..."
+                    placeholder="Cari aset..."
                     value={searchQuery}
                     onChange={e => setSearchHistory(e.target.value)}
-                    className="w-full h-12 pl-12 pr-6 rounded-2xl bg-white border border-slate-100 shadow-sm text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    className="w-full h-11 pl-10 pr-6 rounded-2xl bg-white border border-slate-100 shadow-sm text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/10 transition-all"
                   />
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
                 </div>
 
-                <div className="flex gap-2 min-w-[140px]">
-                  <div className="relative w-full">
-                    <select
-                      value={filterCategory}
-                      onChange={e => setFilterCategory(e.target.value)}
-                      className="w-full h-11 pl-4 pr-10 rounded-xl bg-white border border-slate-100 shadow-sm text-[10px] font-black uppercase tracking-tight outline-none appearance-none cursor-pointer hover:border-blue-200 transition-all"
-                    >
-                      <option value="Semua">KATEGORI: SEMUA</option>
-                      {CATEGORIES.map(c => <option key={c} value={c}>{c.toUpperCase()}</option>)}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
-                  </div>
+                <div className="relative min-w-[120px]">
+                  <select
+                    value={filterCategory}
+                    onChange={e => setFilterCategory(e.target.value)}
+                    className="w-full h-11 pl-3 pr-8 rounded-xl bg-white border border-slate-100 shadow-sm text-[9px] font-black uppercase tracking-tight outline-none appearance-none cursor-pointer"
+                  >
+                    <option value="Semua">SEMUA</option>
+                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
                 </div>
               </div>
 
               {/* Asset Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-20">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pb-20">
                 {filteredAssets.map(asset => (
-                  <div key={asset.id} className="bg-white/60 backdrop-blur-sm p-5 rounded-[2rem] border border-slate-200/50 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all group relative overflow-hidden">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="space-y-1">
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black rounded-full uppercase">{asset.category}</span>
-                        <h3 className="text-sm font-black text-slate-800 uppercase line-clamp-1">{asset.name}</h3>
-                        <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1"><MapPin size={10}/> {asset.location}</p>
+                  <div key={asset.id} className="bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group overflow-hidden">
+                    <div className="p-5 space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1">
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black rounded-full uppercase tracking-tighter">{asset.category}</span>
+                          <h3 className="text-sm font-black text-slate-800 uppercase line-clamp-1">{asset.name}</h3>
+                          <p className="text-[9px] text-slate-400 font-bold flex items-center gap-1 uppercase tracking-tight"><MapPin size={10}/> {asset.location}</p>
+                        </div>
+                        <div className={cn(
+                          "px-2.5 py-1 rounded-full text-[8px] font-black uppercase",
+                          asset.condition === 'Bagus' ? "bg-emerald-50 text-emerald-600" :
+                          asset.condition === 'Rusak' ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-600"
+                        )}>
+                          {asset.condition}
+                        </div>
                       </div>
-                      <div className={cn(
-                        "px-3 py-1 rounded-full text-[9px] font-black uppercase",
-                        asset.condition === 'Bagus' ? "bg-emerald-50 text-emerald-600" :
-                        asset.condition === 'Rusak' ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-600"
-                      )}>
-                        {asset.condition}
+
+                      <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50">
+                         <div className="flex flex-col">
+                           <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Qty</span>
+                           <span className="text-xs font-black text-slate-700">{asset.quantity} Item</span>
+                         </div>
+                         <div className="flex flex-col items-end">
+                           <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest text-right">Price</span>
+                           <span className="text-xs font-black text-blue-600 text-right">{formatIDR(asset.price)}</span>
+                         </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={() => {
+                            setEditingAsset(asset);
+                            setNewAsset(asset);
+                            setIsAddingAsset(true);
+                          }}
+                          className="flex-1 h-9 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center gap-1.5 text-[9px] font-black uppercase hover:bg-blue-50 hover:text-blue-600 transition-all border border-slate-100/50"
+                        >
+                          <Pencil size={12} /> Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedAssetForMaintenance(asset);
+                            setIsMaintenanceModalOpen(true);
+                          }}
+                          className="flex-1 h-9 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center gap-1.5 text-[9px] font-black uppercase hover:bg-amber-50 hover:text-amber-600 transition-all border border-slate-100/50"
+                        >
+                          <Activity size={12} /> Servis
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAsset(asset.id)}
+                          className="w-9 h-9 rounded-xl bg-rose-50 text-rose-400 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all border border-rose-100/50"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-50">
-                       <div className="flex flex-col">
-                         <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Kuantitas</span>
-                         <span className="text-sm font-black text-slate-700">{asset.quantity} Item</span>
-                       </div>
-                       <div className="flex flex-col items-end">
-                         <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest text-right">Harga / Unit</span>
-                         <span className="text-sm font-black text-blue-600 text-right">{formatIDR(asset.price)}</span>
-                       </div>
-                    </div>
-
-                    <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => {
-                          setEditingAsset(asset);
-                          setNewAsset(asset);
-                          setIsAddingAsset(true);
-                        }}
-                        className="flex-1 h-9 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center gap-2 text-[10px] font-bold hover:bg-blue-50 hover:text-blue-600 transition-all"
-                      >
-                        <Pencil size={14} /> EDIT
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedAssetForMaintenance(asset);
-                          setIsMaintenanceModalOpen(true);
-                        }}
-                        className="flex-1 h-9 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center gap-2 text-[10px] font-bold hover:bg-amber-50 hover:text-amber-600 transition-all"
-                      >
-                        <Activity size={14} /> SERVIS
-                      </button>
-                      <button
-                        onClick={() => handleDeleteAsset(asset.id)}
-                        className="w-9 h-9 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-
-                    {/* Quick Stat Badge */}
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full -mr-12 -mt-12 blur-3xl pointer-events-none" />
                   </div>
                 ))}
               </div>
@@ -379,15 +369,15 @@ export default function RestaurantAssetsPage({
           {activeSubTab === 'analytics' && (
             <motion.div
               key="stats"
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, scale: 0.98 }}
               className="space-y-4"
             >
                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                  <div className="bg-slate-900 text-white p-5 rounded-[2rem] space-y-2 shadow-xl relative overflow-hidden">
-                   <DollarSign className="absolute -right-2 -bottom-2 w-20 h-20 text-white/5 rotate-12" />
-                   <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-white/50">Investasi Aset</p>
+                   <DollarSign className="absolute -right-2 -bottom-2 w-16 h-16 text-white/5 rotate-12" />
+                   <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-white/50 leading-none">Total Investasi</p>
                    <h2 className="text-sm font-black truncate">{formatIDR(stats.totalValue)}</h2>
                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
                      <div className="h-full bg-blue-500 w-3/4" />
@@ -395,22 +385,22 @@ export default function RestaurantAssetsPage({
                  </div>
 
                  <div className="bg-white p-5 rounded-[2rem] border border-slate-100 space-y-2 shadow-sm">
-                   <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-slate-400">Bermasalah</p>
+                   <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-slate-400 leading-none">Aset Bermasalah</p>
                    <div className="flex items-center justify-between">
-                     <h2 className="text-xl font-black text-rose-600">{stats.brokenCount}</h2>
-                     <div className="px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded-md text-[6px] font-black uppercase">Need Repair</div>
+                     <h2 className="text-xl font-black text-rose-600 leading-none">{stats.brokenCount}</h2>
+                     <div className="px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded-md text-[6px] font-black uppercase">Service Required</div>
                    </div>
                  </div>
 
                  <div className="bg-white p-5 rounded-[2rem] border border-slate-100 space-y-2 shadow-sm">
-                   <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-slate-400">Total Servis</p>
-                   <h2 className="text-sm font-black text-amber-600 truncate">{formatIDR(stats.maintenanceCost)}</h2>
+                   <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-slate-400 leading-none">Total Biaya Servis</p>
+                   <h2 className="text-sm font-black text-amber-600 truncate leading-none">{formatIDR(stats.maintenanceCost)}</h2>
                  </div>
 
                  <div className="bg-white p-5 rounded-[2rem] border border-slate-100 space-y-2 shadow-sm">
-                   <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-slate-400">Kesehatan</p>
+                   <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-slate-400 leading-none">Aset Sehat</p>
                    <div className="flex items-center justify-between">
-                     <h2 className="text-xl font-black text-emerald-600">
+                     <h2 className="text-xl font-black text-emerald-600 leading-none">
                        {Math.round(((assets.length - stats.brokenCount) / (assets.length || 1)) * 100)}%
                      </h2>
                      <div className="flex gap-0.5">
@@ -422,7 +412,10 @@ export default function RestaurantAssetsPage({
 
                {/* Category Distribution */}
                <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                 <h3 className="font-black text-xs text-slate-800 uppercase tracking-tight mb-4">Distribusi Kategori</h3>
+                 <h3 className="font-black text-xs text-slate-800 uppercase tracking-tight mb-4 flex items-center gap-2">
+                   <Activity size={14} className="text-blue-500" />
+                   Distribusi Kategori
+                 </h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                    {Object.entries(stats.categoryDistribution).map(([cat, count]: any) => (
                      <div key={cat} className="space-y-1">
@@ -434,6 +427,7 @@ export default function RestaurantAssetsPage({
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${(count / assets.length) * 100}%` }}
+                            transition={{ duration: 0.8, ease: "easeOut" }}
                             className="h-full bg-blue-500"
                           />
                         </div>
@@ -447,40 +441,40 @@ export default function RestaurantAssetsPage({
           {activeSubTab === 'maintenance' && (
             <motion.div
               key="maintenance"
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="space-y-6"
+              className="space-y-5"
             >
                <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-                 <div className="p-8 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
-                   <div className="space-y-1">
-                     <h3 className="font-black text-base text-slate-800 uppercase tracking-tight">Log Pemeliharaan Aset</h3>
-                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Riwayat Perbaikan & Servis berkala</p>
+                 <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
+                   <div className="space-y-0.5">
+                     <h3 className="font-black text-xs text-slate-800 uppercase tracking-tight">Log Pemeliharaan Aset</h3>
+                     <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Riwayat Perbaikan berkala</p>
                    </div>
                  </div>
-                 <div className="divide-y divide-slate-50">
+                 <div className="divide-y divide-slate-50 max-h-[500px] overflow-y-auto no-scrollbar">
                     {maintenanceLogs.map(log => {
                       const asset = assets.find(a => a.id === log.asset_id);
                       return (
-                        <div key={log.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
-                           <div className="flex items-center gap-5">
-                             <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
-                               <RefreshCw size={22} />
+                        <div key={log.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
+                           <div className="flex items-center gap-4">
+                             <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shadow-inner">
+                               <RefreshCw size={16} />
                              </div>
-                             <div className="space-y-1">
-                               <h4 className="font-black text-sm text-slate-800 uppercase leading-none">{asset?.name || 'Unknown Asset'}</h4>
-                               <p className="text-xs text-slate-500 font-medium">{log.description}</p>
-                               <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">{new Date(log.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                             <div className="space-y-0.5">
+                               <h4 className="font-black text-[11px] text-slate-800 uppercase leading-none">{asset?.name || 'Aset Terhapus'}</h4>
+                               <p className="text-[10px] text-slate-500 font-medium">{log.description}</p>
+                               <p className="text-[9px] text-slate-400 uppercase font-bold tracking-tight">{new Date(log.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                              </div>
                            </div>
-                           <div className="text-right">
-                             <span className="text-sm font-black text-amber-600">{formatIDR(log.cost)}</span>
+                           <div className="text-right pl-4">
+                             <span className="text-xs font-black text-amber-600 whitespace-nowrap">{formatIDR(log.cost)}</span>
                            </div>
                         </div>
                       );
                     })}
                     {maintenanceLogs.length === 0 && (
-                      <div className="p-20 text-center text-slate-400 italic font-medium">Belum ada riwayat pemeliharaan.</div>
+                      <div className="p-20 text-center text-slate-400 italic text-xs">Belum ada riwayat pemeliharaan.</div>
                     )}
                  </div>
                </div>
@@ -493,136 +487,81 @@ export default function RestaurantAssetsPage({
       {/* Add/Edit Asset Modal */}
       {isAddingAsset && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-[200] animate-in fade-in duration-300">
-           <div className={cn(
-             "rounded-[2.5rem] w-full max-w-sm p-5 shadow-2xl space-y-3 animate-in zoom-in-95 duration-300 overflow-y-auto max-h-[90vh] no-scrollbar",
-             theme === 'dark' ? "bg-[#161421] border border-white/10" : "bg-white"
-           )}>
+           <div className="bg-white rounded-[2.5rem] w-full max-w-sm p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-300 overflow-y-auto max-h-[90vh] no-scrollbar">
              <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <h3 className={cn("font-black text-sm uppercase tracking-tight", theme === 'dark' ? "text-white" : "text-slate-800")}>
-                    {editingAsset ? 'Perbarui Aset' : 'Register Aset'}
+                  <h3 className="font-black text-sm uppercase tracking-tight text-slate-800">
+                    TAMBAH ASSET
                   </h3>
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Inventaris</p>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none">Inventaris Kedai</p>
                 </div>
                 <button
                   onClick={() => { setIsAddingAsset(false); setEditingAsset(null); }}
-                  className={cn(
-                    "w-7 h-7 rounded-full flex items-center justify-center transition-all",
-                    theme === 'dark' ? "bg-white/5 text-slate-400 hover:text-white" : "bg-slate-50 text-slate-400 hover:text-rose-500"
-                  )}
+                  className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center hover:text-rose-500 transition-all"
                 >
                   <X size={16}/>
                 </button>
              </div>
 
-             <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-0.5 col-span-2">
-                  <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Barang</label>
+             <div className="grid grid-cols-2 gap-3">
+                {/* BARIS 1: NAMA & KATEGORI */}
+                <div className="space-y-1">
+                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Barang</label>
                   <input
-                    placeholder="Contoh: Blender Philips"
+                    placeholder="Contoh: Blender"
                     value={newAsset.name}
-                    onChange={e => setNewAsset({...newAsset, name: toTitleCase(e.target.value)})}
-                    className={cn(
-                      "w-full h-9 px-4 rounded-xl text-xs font-bold outline-none transition-all",
-                      theme === 'dark' ? "bg-white/5 border border-white/10 text-white focus:border-blue-500/50" : "bg-slate-50 border-none text-slate-900 focus:ring-2 focus:ring-blue-500/20"
-                    )}
+                    onChange={e => setNewAsset({...newAsset, name: e.target.value.toUpperCase()})}
+                    className="w-full h-11 px-4 rounded-2xl bg-slate-50 border-none text-xs font-bold text-slate-900 focus:ring-2 focus:ring-blue-500/20 transition-all"
                   />
                 </div>
 
-                <div className="space-y-0.5">
-                  <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Kategori</label>
+                <div className="space-y-1">
+                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Kategori</label>
                   <select
                     value={newAsset.category}
                     onChange={e => setNewAsset({...newAsset, category: e.target.value})}
-                    className={cn(
-                      "w-full h-9 px-4 rounded-xl text-[10px] font-bold outline-none",
-                      theme === 'dark' ? "bg-white/5 border border-white/10 text-white" : "bg-slate-50 border-none text-slate-900"
-                    )}
+                    className="w-full h-11 px-4 rounded-xl bg-slate-50 border-none text-[10px] font-bold text-slate-900"
                   >
                     {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
 
-                <div className="space-y-0.5">
-                  <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Lokasi</label>
-                  <select
-                    value={newAsset.location}
-                    onChange={e => setNewAsset({...newAsset, location: e.target.value})}
-                    className={cn(
-                      "w-full h-9 px-4 rounded-xl text-[10px] font-bold outline-none",
-                      theme === 'dark' ? "bg-white/5 border border-white/10 text-white" : "bg-slate-50 border-none text-slate-900"
-                    )}
-                  >
-                    {LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
-                  </select>
-                </div>
-
-                <div className="space-y-0.5">
-                  <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">QTY</label>
+                {/* BARIS 2: JUMLAH & HARGA */}
+                <div className="space-y-1">
+                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Jumlah</label>
                   <input
                     placeholder="0"
-                    value={formatNumber(newAsset.quantity)}
-                    onChange={e => setNewAsset({...newAsset, quantity: parseNumber(e.target.value)})}
-                    className={cn(
-                      "w-full h-9 px-4 rounded-xl text-xs font-black outline-none",
-                      theme === 'dark' ? "bg-white/5 border border-white/10 text-white" : "bg-slate-50 border-none text-slate-900"
-                    )}
+                    type="number"
+                    value={newAsset.quantity}
+                    onChange={e => setNewAsset({...newAsset, quantity: Number(e.target.value)})}
+                    className="w-full h-11 px-4 rounded-xl bg-slate-50 border-none text-xs font-black text-slate-700"
                   />
                 </div>
 
-                <div className="space-y-0.5">
-                  <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Kondisi</label>
-                  <div className={cn(
-                    "flex gap-1 p-0.5 rounded-xl",
-                    theme === 'dark' ? "bg-white/5" : "bg-slate-50"
-                  )}>
-                    {['Bagus', 'Rusak', 'Servis'].map(cond => (
-                      <button
-                        key={cond}
-                        onClick={() => setNewAsset({...newAsset, condition: cond as any})}
-                        className={cn(
-                          "flex-1 h-7 rounded-lg text-[6px] font-black uppercase tracking-tight transition-all",
-                          newAsset.condition === cond
-                            ? (theme === 'dark' ? "bg-blue-600 text-white" : "bg-white text-blue-600 shadow-sm")
-                            : "text-slate-400 hover:text-slate-600"
-                        )}
-                      >
-                        {cond}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-0.5 col-span-2">
-                  <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Harga Satuan (Rp)</label>
+                <div className="space-y-1">
+                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Harga Satuan</label>
                   <div className="relative">
                     <input
                       placeholder="0"
-                      value={formatNumber(newAsset.price)}
-                      onChange={e => setNewAsset({...newAsset, price: parseNumber(e.target.value)})}
-                      className={cn(
-                        "w-full h-9 pl-10 pr-4 rounded-xl text-xs font-black outline-none transition-all",
-                        theme === 'dark' ? "bg-white/5 border border-white/10 text-blue-400" : "bg-slate-50 border-none text-blue-600"
-                      )}
+                      value={formatNumber(String(newAsset.price))}
+                      onChange={e => setNewAsset({...newAsset, price: Number(parseNumber(e.target.value))})}
+                      className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 border-none text-xs font-black text-blue-600 focus:ring-2 focus:ring-blue-500/10 transition-all"
                     />
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-300">RP</span>
                   </div>
                 </div>
              </div>
 
-             <div className="flex gap-2 pt-1">
+             <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => { setIsAddingAsset(false); setEditingAsset(null); }}
-                  className={cn(
-                    "flex-1 h-10 rounded-xl font-black text-[8px] uppercase tracking-widest transition-all",
-                    theme === 'dark' ? "text-slate-400 hover:bg-white/5" : "text-slate-400 hover:bg-slate-50"
-                  )}
+                  className="flex-1 h-12 rounded-2xl font-black text-[9px] uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all"
                 >
                   Batal
                 </button>
                 <button
                   onClick={handleSaveAsset}
-                  className="flex-[2] h-10 bg-blue-600 text-white rounded-xl font-black text-[8px] uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+                  className="flex-[2] h-12 bg-blue-600 text-white rounded-2xl font-black text-[9px] uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
                 >
                   Simpan Aset
                 </button>
@@ -634,20 +573,14 @@ export default function RestaurantAssetsPage({
       {/* Maintenance Modal */}
       {isMaintenanceModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-[200] animate-in fade-in duration-300">
-           <div className={cn(
-             "rounded-[2.5rem] w-full max-w-xs p-6 shadow-2xl space-y-6 animate-in zoom-in-95 duration-300",
-             theme === 'dark' ? "bg-[#161421] border border-white/10" : "bg-white"
-           )}>
+           <div className="bg-white rounded-[2.5rem] w-full max-w-xs p-7 shadow-2xl space-y-6 animate-in zoom-in-95 duration-300">
               <div className="text-center space-y-2">
-                 <div className={cn(
-                   "w-14 h-14 rounded-2xl flex items-center justify-center mx-auto shadow-inner",
-                   theme === 'dark' ? "bg-white/5 text-amber-500" : "bg-amber-50 text-amber-600"
-                 )}>
-                   <Activity size={28} />
+                 <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+                   <Activity size={32} />
                  </div>
                  <div className="space-y-0.5">
-                   <h3 className={cn("font-black text-base uppercase tracking-tight", theme === 'dark' ? "text-white" : "text-slate-800")}>Catat Perbaikan</h3>
-                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">{selectedAssetForMaintenance?.name}</p>
+                   <h3 className="font-black text-base uppercase tracking-tight text-slate-800">Catat Perbaikan</h3>
+                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[200px] mx-auto">{selectedAssetForMaintenance?.name}</p>
                  </div>
               </div>
 
@@ -657,25 +590,19 @@ export default function RestaurantAssetsPage({
                    <input
                      placeholder="Ganti pisau blender..."
                      value={newMaintenance.description}
-                     onChange={e => setNewMaintenance({...newMaintenance, description: toTitleCase(e.target.value)})}
-                     className={cn(
-                       "w-full h-10 px-4 rounded-xl text-xs font-bold outline-none",
-                       theme === 'dark' ? "bg-white/5 border border-white/10 text-white" : "bg-slate-50 border-none text-slate-900"
-                     )}
+                     onChange={e => setNewMaintenance({...newMaintenance, description: e.target.value})}
+                     className="w-full h-11 px-4 rounded-xl bg-slate-50 border-none text-xs font-bold text-slate-900 focus:ring-2 focus:ring-amber-500/10 transition-all"
                    />
                  </div>
 
                  <div className="space-y-1">
-                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Biaya (Rp)</label>
+                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Biaya Servis</label>
                     <div className="relative">
                       <input
                         placeholder="0"
                         value={newMaintenance.cost}
                         onChange={e => setNewMaintenance({...newMaintenance, cost: formatNumber(e.target.value)})}
-                        className={cn(
-                          "w-full h-10 pl-10 pr-4 rounded-xl text-sm font-black outline-none",
-                          theme === 'dark' ? "bg-white/5 border border-white/10 text-amber-500" : "bg-slate-50 border-none text-amber-600"
-                        )}
+                        className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 border-none text-sm font-black text-amber-600 focus:ring-2 focus:ring-amber-500/10 transition-all"
                       />
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">RP</span>
                     </div>
@@ -683,8 +610,8 @@ export default function RestaurantAssetsPage({
               </div>
 
               <div className="flex gap-3">
-                 <button onClick={() => setIsMaintenanceModalOpen(false)} className="flex-1 h-11 text-slate-400 font-black text-[9px] uppercase tracking-widest">Batal</button>
-                 <button onClick={handleAddMaintenance} className="flex-[2] h-11 bg-amber-600 text-white rounded-xl font-black text-[9px] uppercase tracking-[0.2em] shadow-xl shadow-amber-500/20 active:scale-95 transition-all">Simpan Log</button>
+                 <button onClick={() => setIsMaintenanceModalOpen(false)} className="flex-1 h-12 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 rounded-2xl transition-all">Batal</button>
+                 <button onClick={handleAddMaintenance} className="flex-[2] h-12 bg-amber-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-amber-500/20 active:scale-95 transition-all">Simpan Log</button>
               </div>
            </div>
         </div>

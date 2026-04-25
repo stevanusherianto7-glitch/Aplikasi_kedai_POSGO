@@ -325,7 +325,7 @@ export const RecipeManager: React.FC<RecipeManagerProps> = ({
                 <div className="flex items-center justify-between gap-4">
                   <h3 className="text-xs font-bold text-slate-900 tracking-tight uppercase">Komposisi Bahan</h3>
                   <Dialog open={isAddingIngredientToRecipe} onOpenChange={setIsAddingIngredientToRecipe}>
-                    <DialogTrigger>
+                    <DialogTrigger asChild>
                       <Button size="sm" className="h-8 gap-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-bold">
                         <Plus className="w-3.5 h-3.5" />
                         Tambah
@@ -782,9 +782,11 @@ export const RecipeManager: React.FC<RecipeManagerProps> = ({
             <p className="text-slate-500 font-medium text-xs">Menu & Standar Porsi</p>
           </div>
           <Dialog open={isAddingRecipe} onOpenChange={setIsAddingRecipe}>
-            <DialogTrigger render={<Button className="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm" />}>
-              <Plus className="w-4 h-4 mr-2" />
-              Buat HPP Baru
+            <DialogTrigger asChild>
+              <Button className="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Buat HPP Baru
+              </Button>
             </DialogTrigger>
             <DialogContent className="w-[calc(100%-4rem)] sm:max-w-sm mx-auto rounded-[2.5rem] p-0 overflow-hidden border-none shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-white animate-in zoom-in-95 duration-200">
               <div className="relative p-6 bg-gradient-to-br from-slate-900 to-slate-800">
