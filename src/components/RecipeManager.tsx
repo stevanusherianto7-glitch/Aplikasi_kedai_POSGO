@@ -326,7 +326,7 @@ export const RecipeManager: React.FC<RecipeManagerProps> = ({
                   <h3 className="text-xs font-bold text-slate-900 tracking-tight uppercase">Komposisi Bahan</h3>
                   <Dialog open={isAddingIngredientToRecipe} onOpenChange={setIsAddingIngredientToRecipe}>
                     <DialogTrigger asChild>
-                      <Button size="sm" className="h-8 gap-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-bold">
+                      <Button size="sm" className="h-8 gap-1.5 bg-[#5d4037] hover:bg-[#4e342e] text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-md">
                         <Plus className="w-3.5 h-3.5" />
                         Tambah
                       </Button>
@@ -707,15 +707,14 @@ export const RecipeManager: React.FC<RecipeManagerProps> = ({
                   </Button>
                   <Button
                     onClick={() => handleExportRecipePDF(selectedRecipe)}
-                    className="w-full h-10 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-[10px] uppercase tracking-wider text-slate-700"
+                    className="w-full h-10 bg-amber-500 hover:bg-amber-600 rounded-xl font-black text-[10px] uppercase tracking-widest text-white shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
                   >
                     <FileDown className="w-4 h-4 mr-2" />
-                    Export PDF
+                    EXPORT PDF
                   </Button>
                   <Button 
-                    variant="ghost"
                     onClick={() => deleteRecipe(selectedRecipe.id)}
-                    className="w-full h-10 rounded-lg font-bold text-rose-500 hover:text-rose-600 hover:bg-rose-50 text-[10px] uppercase tracking-wider"
+                    className="w-full h-10 bg-purple-600 hover:bg-purple-700 rounded-xl font-black text-[10px] uppercase tracking-widest text-white shadow-lg shadow-purple-500/20 active:scale-95 transition-all"
                   >
                     Hapus Resep
                   </Button>

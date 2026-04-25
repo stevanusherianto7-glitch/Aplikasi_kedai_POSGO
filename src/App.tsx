@@ -123,6 +123,7 @@ export default function App() {
 
 function AppContent() {
   const [activeTab, setActiveTab] = React.useState("home");
+  const [isHppDetailOpen, setIsHppDetailOpen] = React.useState(false);
   const [transaksiTab, setTransaksiTab] = React.useState<'petty' | 'riwayat'>('petty');
   const [karyawanTab, setKaryawanTab] = React.useState<'data' | 'jobdesk' | 'slip' | 'jadwal' | 'absensi'>('data');
   
@@ -231,7 +232,14 @@ function AppContent() {
   };
 
   return (
-    <Layout activeTab={activeTab} onTabChange={handleTabChange} theme={state.theme} toggleTheme={state.toggleTheme} isModalOpen={isModalOpen}>
+    <Layout
+      activeTab={activeTab}
+      onTabChange={handleTabChange}
+      theme={state.theme}
+      toggleTheme={state.toggleTheme}
+      isModalOpen={isModalOpen}
+      hideNavbar={isHppDetailOpen}
+    >
       <div className={cn(
         "mx-auto transition-all duration-500 w-full p-0 max-w-none"
       )}>
@@ -304,7 +312,10 @@ function AppContent() {
                 onDeleteRecipe={state.handleDeleteRecipe}
                 theme={state.theme}
                 onBackToDashboard={() => handleTabChange('home')}
-                onModalToggle={setIsModalOpen}
+                onModalToggle={(val) => {
+                   setIsModalOpen(val);
+                   setIsHppDetailOpen(val);
+                }}
               />
           </div>
         )}

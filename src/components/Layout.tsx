@@ -12,9 +12,10 @@ interface LayoutProps {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
   isModalOpen?: boolean;
+  hideNavbar?: boolean;
 }
 
-export function Layout({ children, activeTab, onTabChange, theme, toggleTheme, isModalOpen = false }: LayoutProps) {
+export function Layout({ children, activeTab, onTabChange, theme, toggleTheme, isModalOpen = false, hideNavbar = false }: LayoutProps) {
   const { canInstall, installApp } = usePWAInstall();
   
   const menuGroups = [
@@ -129,7 +130,7 @@ export function Layout({ children, activeTab, onTabChange, theme, toggleTheme, i
         </main>
 
         {/* Mobile Bottom Navigation - Premium God Mode */}
-        {activeTab !== 'kasirgo' && !isModalOpen && (
+        {activeTab !== 'kasirgo' && !isModalOpen && !hideNavbar && (
           <nav className={cn(
             "lg:hidden fixed bottom-6 left-0 right-0 z-40 h-20 px-6 mx-6 rounded-[2rem] border backdrop-blur-2xl flex items-center justify-around shadow-2xl transition-all duration-500",
             theme === 'dark' ? "bg-black/60 border-white/10 shadow-black/40" : "bg-white/80 border-slate-200 shadow-slate-200/50"

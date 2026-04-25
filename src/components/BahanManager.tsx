@@ -88,6 +88,14 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
   const [activeManagerTab, setActiveManagerTab] = React.useState<'main' | 'bahan' | 'hpp' | 'resep'>('main');
   const [viewMode, setViewMode] = React.useState<'menu-list' | 'ingredient-list' | 'stock-opname'>('ingredient-list');
   const [selectedRecipeId, setSelectedRecipeId] = React.useState<string | null>(null);
+
+  // Sync isHppDetailOpen to parent via onModalToggle
+  React.useEffect(() => {
+    if (onModalToggle) {
+      onModalToggle(selectedRecipeId !== null);
+    }
+  }, [selectedRecipeId, onModalToggle]);
+
   const [isAddingIngredient, _setIsAddingIngredient] = React.useState(false);
   const [isAddingRecipe, setIsAddingRecipe] = React.useState(false);
   const [newIngredient, setNewIngredient] = React.useState<Partial<Ingredient>>({
@@ -198,7 +206,7 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
   return (
     <div className={cn(
       "space-y-6 font-sans pb-10 px-0 min-h-screen transition-colors duration-500",
-      "bg-gradient-to-br from-blue-50 via-slate-50 to-emerald-50"
+      "bg-transparent"
     )}>
       {/* FIXED DASHBOARD HEADER */}
       <div className={cn(
