@@ -5,6 +5,28 @@ import { formatCurrency } from "../lib/utils";
 import { SHIFT_CONFIGS } from "../schedulerConstants";
 
 const FONT_FAMILY = 'helvetica';
+const LOGO_URL = "https://mrrfmrzhumcmhmqjceul.supabase.co/storage/v1/object/sign/public-images/IMG-20260425-WA0010.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNGYxMmNiMy01YWU4LTRjYjQtYTgwZS00ZWEwMTlhOWE3YTciLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwdWJsaWMtaW1hZ2VzL0lNRy0yMDI2MDQyNS1XQTAwMTAucG5nIiwiaWF0IjoxNzc3MTUwMDg1LCJleHAiOjE3Nzc3NTQ4ODV9.-7eC44SPNDU5Gw4gI8tOXxjgYU7gM-32VaSiPU_fjYA";
+
+/**
+ * Helper to convert URL to Base64 to bypass CORS issues in jsPDF
+ */
+const getBase64ImageFromURL = (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.setAttribute("crossOrigin", "anonymous");
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx?.drawImage(img, 0, 0);
+      const dataURL = canvas.toDataURL("image/png");
+      resolve(dataURL);
+    };
+    img.onerror = (error) => reject(error);
+    img.src = url;
+  });
+};
 
 // ─── UI LOADING FEEDBACK ───────────────────────────────────────────────────
 const showLoadingOverlay = () => {
@@ -153,7 +175,6 @@ export const handleExportPatternPDF = (employees: Employee[], weeklyPattern: Rec
 
     const head = ['Karyawan', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB', 'MIN'];
 
-    // Explicitly clones the data formatting from the working Monthly version
     const body = employees.map(emp => {
       const p = weeklyPattern[emp.id] || Array(7).fill(ShiftType.LIBUR);
       const row: any[] = [''];
@@ -174,7 +195,6 @@ export const handleExportPatternPDF = (employees: Employee[], weeklyPattern: Rec
       didParseCell: (data) => {
         if (data.column.index === 0) data.cell.text = [];
         if (data.section === 'body' && data.column.index >= 1) {
-          // Identical color detection as Monthly
           const val = String(data.cell.raw).trim().toUpperCase();
           if (SHIFT_COLORS[val]) {
             data.cell.styles.fillColor = SHIFT_COLORS[val];
@@ -216,7 +236,6 @@ export const handleExportRecipePDF = (recipe: Recipe, ingredients: Ingredient[])
     const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
     const pw = doc.internal.pageSize.getWidth();
 
-    // 1. Clean Branding Header (No Block)
     addHeader(doc, "Kalkulasi HPP Resep", recipe.name);
 
     doc.setFontSize(7).setTextColor(100, 116, 139); // Slate-500
@@ -225,7 +244,6 @@ export const handleExportRecipePDF = (recipe: Recipe, ingredients: Ingredient[])
     const margin = 14;
     let currentY = 40;
 
-    // 2. Ingredients Table
     autoTable(doc, {
       startY: currentY,
       head: [['NO', 'KOMPONEN BAHAN', 'TAKARAN', 'HARGA/UNIT', 'SUBTOTAL']],
@@ -250,7 +268,6 @@ export const handleExportRecipePDF = (recipe: Recipe, ingredients: Ingredient[])
 
     currentY = (doc as any).lastAutoTable.finalY + 10;
 
-    // 3. Cost Breakdown & Analysis
     const ingMap = new Map(ingredients.map(i => [i.id, i]));
     const rawCost = (recipe.items || []).reduce((acc, item) => {
       const ing = ingMap.get(item.ingredientId);
@@ -291,15 +308,153 @@ export const handleExportRecipePDF = (recipe: Recipe, ingredients: Ingredient[])
   } finally { hideLoadingOverlay(overlay); }
 };
 
-export const handleExportSlipPDF = (employee: Employee | null, attendances: Attendance[]) => {
+/**
+ * 4. SLIP GAJI - KEDAI ELVERA 57 (PRECISION ALIGNMENT v1.4.9)
+ * Optimized coordinates for pixel-perfect document export.
+ */
+export const handleExportSlipPDF = async (employee: Employee | null, slipData: any) => {
   if (!employee) return;
   const overlay = showLoadingOverlay();
   try {
-    const doc = new jsPDF();
-    addHeader(doc, "Slip Gaji", employee.name);
-    autoTable(doc, { startY: 45, body: [['NAMA', employee.name.toUpperCase()], ['GAJI', formatCurrency(employee.salary)]], theme: 'plain' });
-    saveFile(doc, `Slip_${employee.name}`);
-  } finally { hideLoadingOverlay(overlay); }
+    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+    const pw = doc.internal.pageSize.getWidth();
+    const marginX = 25; // Standard alignment for all content
+    const d = slipData || { baseSalary: 0, allowance: 0, overtime: 0, thr: 0, alphaDeduction: 0, hrdNotes: "" };
+
+    // ─── 1. FETCH LOGO AS BASE64 ───
+    let logoBase64 = "";
+    try {
+        logoBase64 = await getBase64ImageFromURL(LOGO_URL);
+    } catch (err) {
+        console.warn("Logo loading failed, continuing without logo", err);
+    }
+
+    // ─── 2. BOXED HEADER (PRECISION ALIGNMENT) ───
+    let currentY = 20;
+    const headerH = 22;
+
+    // Draw Header Box
+    doc.setDrawColor(30, 41, 59);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(marginX, currentY, pw - (marginX * 2), headerH, 2, 2, 'S');
+
+    // Logo inside box
+    if (logoBase64) {
+        doc.addImage(logoBase64, "PNG", marginX + 5, currentY + 3, 16, 16);
+    }
+
+    // Divider Line inside Box
+    doc.setDrawColor(203, 213, 225);
+    doc.line(marginX + 25, currentY + 4, marginX + 25, currentY + headerH - 4);
+
+    // Brand Center with Color Logic
+    doc.setFontSize(14);
+    doc.setFont(FONT_FAMILY, 'bold');
+    const txt1 = "KEDAI ";
+    const txt2 = "ELVERA";
+    const txt3 = " 57";
+    const w1 = doc.getTextWidth(txt1);
+    const w2 = doc.getTextWidth(txt2);
+    const w3 = doc.getTextWidth(txt3);
+    const totalW = w1 + w2 + w3;
+    const startBrandX = marginX + 25 + ((pw - marginX * 2 - 25 - totalW) / 2);
+
+    doc.setTextColor(0, 0, 0); doc.text(txt1, startBrandX, currentY + 12);
+    doc.setTextColor(37, 99, 235); doc.text(txt2, startBrandX + w1, currentY + 12);
+    doc.setTextColor(0, 0, 0); doc.text(txt3, startBrandX + w1 + w2, currentY + 12);
+
+    doc.setFontSize(7).setTextColor(148, 163, 184).text("DOKUMEN RESMI PENGGAJIAN", marginX + 25 + ((pw - marginX * 2 - 25) / 2), currentY + 18, { align: 'center' });
+
+    // ─── 3. TITLE ───
+    currentY += headerH + 15;
+    doc.setTextColor(30, 41, 59);
+    doc.setFontSize(16).setFont(FONT_FAMILY, 'bold').text("SLIP GAJI", pw / 2, currentY, { align: 'center' });
+
+    // ─── 4. METADATA (ALIGNED AT X=25) ───
+    currentY += 18;
+    doc.setFontSize(9).setFont(FONT_FAMILY, 'normal');
+    const metaRows = [
+        ["Tanggal", ":", new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })],
+        ["Nama", ":", employee.name.toUpperCase()],
+        ["Jabatan", ":", employee.role.toUpperCase()]
+    ];
+
+    metaRows.forEach(row => {
+        doc.setTextColor(100, 116, 139);
+        doc.text(row[0], marginX, currentY);
+        doc.text(row[1], marginX + 25, currentY);
+        doc.setTextColor(30, 41, 59);
+        doc.setFont(FONT_FAMILY, 'bold').text(row[2], marginX + 30, currentY);
+        doc.setFont(FONT_FAMILY, 'normal');
+        currentY += 7;
+    });
+
+    // ─── 5. FINANCIAL DATA (ALIGNED AT X=25) ───
+    currentY += 12;
+    const finX = marginX;
+    const lines = [
+        ["Gaji Pokok Dasar", d.baseSalary],
+        ["Tunjangan Jabatan", d.allowance],
+        ["Lembur / Bonus", d.overtime],
+        ["THR Khusus", d.thr],
+        ["Potongan Absen / Alpha (-)", d.alphaDeduction]
+    ];
+
+    lines.forEach((line, i) => {
+        doc.setFont(FONT_FAMILY, 'bold').setFontSize(8).setTextColor(30, 41, 59);
+        doc.text(String(line[0]).toUpperCase(), finX, currentY);
+        doc.setFont(FONT_FAMILY, 'normal').setFontSize(9).text(":", finX + 65, currentY);
+        doc.text("Rp", finX + 70, currentY);
+        doc.text(Number(line[1]).toLocaleString('id-ID'), pw - marginX - 10, currentY, { align: 'right' });
+        doc.setDrawColor(203, 213, 225); doc.setLineDashPattern([0.5, 0.5], 0);
+        doc.line(finX + 80, currentY + 1, pw - marginX - 15, currentY + 1);
+        doc.setLineDashPattern([], 0);
+        if (i === 4) {
+            doc.setTextColor(0); doc.setFontSize(12).text("+", pw - marginX - 5, currentY);
+            doc.setDrawColor(0); doc.setLineWidth(0.4).line(finX + 70, currentY + 3, pw - marginX - 10, currentY + 3);
+        }
+        currentY += 10;
+    });
+
+    // ─── 6. GAJI BERSIH (TOTAL WITH GREEN HIGHLIGHT) ───
+    currentY += 12;
+    const total = d.baseSalary + d.allowance + d.overtime + d.thr - d.alphaDeduction;
+
+    // Draw Emerald Background Box
+    doc.setFillColor(236, 253, 245); // Emerald-50
+    doc.roundedRect(marginX - 5, currentY - 7, pw - (marginX * 2) + 10, 14, 2, 2, 'F');
+
+    doc.setTextColor(6, 78, 59); // Emerald-900
+    doc.setFontSize(10).setFont(FONT_FAMILY, 'bold').text("GAJI BERSIH", finX, currentY);
+    doc.text(":", finX + 65, currentY);
+    doc.text("Rp", finX + 70, currentY);
+    doc.setFontSize(14).text(total.toLocaleString('id-ID'), pw - marginX - 10, currentY, { align: 'right' });
+    doc.setTextColor(30, 41, 59); // Reset to Slate
+
+    // ─── 7. HORIZONTAL SIGNATURE & COMPACT NOTES (BALANCED) ───
+    currentY += 35;
+    const sigY = currentY;
+
+    // Receiver (Left)
+    doc.setFontSize(8).setFont(FONT_FAMILY, 'bold').text("PENERIMA,", marginX + 5, sigY);
+    doc.line(marginX, sigY + 20, marginX + 45, sigY + 20);
+    doc.text(employee.name.toUpperCase(), marginX + 5, sigY + 25);
+
+    // HRD Notes (Right - Balanced with Signature)
+    const boxW = 75;
+    const boxX = pw - marginX - boxW;
+    doc.setDrawColor(15, 23, 42); doc.setLineDashPattern([1, 1], 0);
+    doc.rect(boxX, sigY - 5, boxW, 30);
+    doc.setFont(FONT_FAMILY, 'bold').setFontSize(7).text("CATATAN HRD:", boxX + 5, sigY);
+    doc.setFont(FONT_FAMILY, 'normal').setFontSize(8).setTextColor(71, 85, 105);
+    doc.text(d.hrdNotes || "................................................", boxX + 5, sigY + 8, { maxWidth: boxW - 10 });
+    doc.setLineDashPattern([], 0);
+
+    // (HRD MANAGER SIGNATURE REMOVED PER REQUEST)
+
+    saveFile(doc, `Slip_Gaji_${employee.name.replace(/\s+/g, '_')}`);
+  } catch (e) { console.error("PDF Export Error:", e); }
+  finally { hideLoadingOverlay(overlay); }
 };
 
 export const handleExportJobdeskPDF = (selectedTasks: string[], reportTitle: string) => {

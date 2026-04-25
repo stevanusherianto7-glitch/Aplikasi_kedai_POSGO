@@ -124,6 +124,33 @@ export const JobdeskManager: React.FC<JobdeskManagerProps> = ({
   const [isMenuOpen, setIsMenuOpen] = React.useState(true);
   const [isCheatSheetOpen, _setIsCheatSheetOpen] = React.useState(false);
 
+  // LOCAL STATE FOR PAYSLIP FORM
+  const [slipData, setSlipData] = React.useState<Record<string, {
+    baseSalary: number;
+    allowance: number;
+    overtime: number;
+    thr: number;
+    alphaDeduction: number;
+    hrdNotes: string;
+  }>>({});
+
+  const handleUpdateSlipData = (empId: string, field: string, value: any) => {
+    setSlipData(prev => ({
+      ...prev,
+      [empId]: {
+        ...(prev[empId] || { baseSalary: 0, allowance: 0, overtime: 0, thr: 0, alphaDeduction: 0, hrdNotes: "" }),
+        [field]: value
+      }
+    }));
+  };
+
+  // Initialize form with employee's stored base salary when employee is selected
+  React.useEffect(() => {
+    if (selectedEmployeeForSlip && !slipData[selectedEmployeeForSlip.id]) {
+      handleUpdateSlipData(selectedEmployeeForSlip.id, 'baseSalary', selectedEmployeeForSlip.salary);
+    }
+  }, [selectedEmployeeForSlip]);
+
   const setIsCheatSheetOpen = (val: boolean) => {
     _setIsCheatSheetOpen(val);
     if (onModalToggle) onModalToggle(val);
@@ -151,8 +178,6 @@ export const JobdeskManager: React.FC<JobdeskManagerProps> = ({
   const handleSaveInline = (id: string) => {
     setNewEmployee(inlineData);
     setEditingEmployeeId(id);
-    // We delay the call slightly to ensure state is updated if needed,
-    // but handleSaveEmployee in App.tsx takes arguments, so we can just call it with them.
     handleSaveEmployee();
     setInlineEditId(null);
   };
@@ -345,26 +370,27 @@ export const JobdeskManager: React.FC<JobdeskManagerProps> = ({
           </div>
 
           <Dialog open={isAddingEmployee} onOpenChange={setIsAddingEmployee}>
-            <DialogTrigger render={<div className={cn(
-              "relative overflow-hidden group cursor-pointer transition-all duration-300 rounded-[2rem] p-5 border h-24 flex flex-col justify-center items-start text-left shadow-xl active:scale-95",
-              theme === 'dark'
-                ? "bg-blue-600/20 backdrop-blur-xl border-blue-400/30 hover:bg-blue-600/30 hover:border-blue-400/50 shadow-blue-500/10"
-                : "bg-blue-500 border-blue-600 hover:bg-blue-400"
-            )} />}>
-              <div className="relative z-10 space-y-1">
-                <h3 className="text-sm font-black text-white uppercase tracking-tight leading-none">Tambah Karyawan</h3>
-                <p className={cn(
-                  "text-[8px] font-black uppercase tracking-widest mt-1.5",
-                  theme === 'dark' ? "text-blue-100/80" : "text-white/80"
-                )}>Rekrutmen anggota tim baru.</p>
-              </div>
+            <DialogTrigger asChild>
               <div className={cn(
-                "absolute -bottom-10 -right-10 w-24 h-24 rounded-full blur-2xl transition-all",
-                theme === 'dark' ? "bg-blue-400/20 group-hover:bg-blue-400/30" : "bg-white/10"
-              )} />
+                "relative overflow-hidden group cursor-pointer transition-all duration-300 rounded-[2rem] p-5 border h-24 flex flex-col justify-center items-start text-left shadow-xl active:scale-95",
+                theme === 'dark'
+                  ? "bg-blue-600/20 backdrop-blur-xl border-blue-400/30 hover:bg-blue-600/30 hover:border-blue-400/50 shadow-blue-500/10"
+                  : "bg-blue-500 border-blue-600 hover:bg-blue-400"
+              )}>
+                <div className="relative z-10 space-y-1">
+                  <h3 className="text-sm font-black text-white uppercase tracking-tight leading-none">Tambah Karyawan</h3>
+                  <p className={cn(
+                    "text-[8px] font-black uppercase tracking-widest mt-1.5",
+                    theme === 'dark' ? "text-blue-100/80" : "text-white/80"
+                  )}>Rekrutmen anggota tim baru.</p>
+                </div>
+                <div className={cn(
+                  "absolute -bottom-10 -right-10 w-24 h-24 rounded-full blur-2xl transition-all",
+                  theme === 'dark' ? "bg-blue-400/20 group-hover:bg-blue-400/30" : "bg-white/10"
+                )} />
+              </div>
             </DialogTrigger>
             <DialogContent className="w-[calc(100%-4rem)] sm:max-w-md mx-auto rounded-[2rem] p-0 overflow-hidden border-none shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-white animate-in zoom-in-95 duration-200">
-              {/* Premium Header with Gradient */}
               <div className="relative p-8 bg-gradient-to-br from-slate-900 to-slate-800">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl" />
                 <DialogTitle className="relative text-lg font-bold text-white tracking-tight flex items-center gap-3">
@@ -376,10 +402,8 @@ export const JobdeskManager: React.FC<JobdeskManagerProps> = ({
                     <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-0.5">Sistem SDM Terpusat</span>
                   </div>
                 </DialogTitle>
-
               </div>
 
-              {/* Content Body */}
               <div className="p-8 space-y-6 bg-white">
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2 ml-1">
@@ -425,7 +449,6 @@ export const JobdeskManager: React.FC<JobdeskManagerProps> = ({
                 </div>
               </div>
 
-              {/* Footer */}
               <div className="p-8 pt-2 bg-white flex gap-4">
                 <Button 
                   variant="ghost" 
@@ -493,7 +516,6 @@ export const JobdeskManager: React.FC<JobdeskManagerProps> = ({
       )}
 
       <div className="px-6">
-        {/* Content Area (Full Width) */}
         <div className="lg:col-span-12">
           {karyawanTab === 'data' && (
             <div className="space-y-4 animate-in fade-in duration-700">
@@ -517,7 +539,6 @@ export const JobdeskManager: React.FC<JobdeskManagerProps> = ({
                       }
                     }}
                   >
-                    {/* Baris 1: Nama & Jabatan (Kanan) */}
                     <div className="flex items-center justify-between">
                       {inlineEditId === emp.id ? (
                         <Input
@@ -545,7 +566,6 @@ export const JobdeskManager: React.FC<JobdeskManagerProps> = ({
                       )}
                     </div>
 
-                    {/* Baris 2: Gaji & Aksi */}
                     <div className="flex items-center justify-between pt-1">
                       <div className="space-y-0.5">
                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Gaji Bulanan</p>
@@ -613,7 +633,6 @@ export const JobdeskManager: React.FC<JobdeskManagerProps> = ({
 
           {karyawanTab === 'jobdesk' && (
             <div className="space-y-8 animate-in fade-in duration-700">
-              {/* Utility Header for Jobdesk */}
               <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-6">
                 <div className="flex-1 w-full space-y-1.5">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">Judul Laporan SPO</label>
@@ -635,7 +654,6 @@ export const JobdeskManager: React.FC<JobdeskManagerProps> = ({
                 </div>
               </div>
 
-              {/* Full Width Markdown Content */}
               <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden p-6 sm:p-10">
                 <div className="prose prose-sm sm:prose-base prose-slate max-w-none
                   prose-headings:text-primary prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight
@@ -664,198 +682,251 @@ export const JobdeskManager: React.FC<JobdeskManagerProps> = ({
           )}
 
           {karyawanTab === 'slip' && (
-            <div className="space-y-10">
+            <div className="space-y-6">
+              {/* ULTRA COMPACT PAYROLL CONTROL PANEL */}
               <div className={cn(
-                "p-8 rounded-[2.5rem] overflow-hidden relative transition-all duration-300",
-                theme === 'dark'
-                  ? "bg-blue-600/10 border border-blue-500/20 backdrop-blur-xl shadow-2xl shadow-black/40"
-                  : "bg-white border border-slate-100 shadow-xl shadow-slate-200/50"
+                "p-4 rounded-[2rem] border transition-all duration-300",
+                theme === 'dark' ? "bg-slate-900 border-white/5" : "bg-white border-slate-100 shadow-sm"
               )}>
-                <div className="flex flex-col md:flex-row items-start justify-between gap-8 relative z-10">
-                  <div className="space-y-1 shrink-0">
-                    <h3 className={cn(
-                      "text-sm font-black tracking-tight uppercase",
-                      theme === 'dark' ? "text-white" : "text-slate-800"
-                    )}>PILIH KARYAWAN</h3>
-                    <p className={cn(
-                      "text-[10px] font-black uppercase tracking-[0.3em]",
-                      theme === 'dark' ? "text-blue-300/60" : "text-slate-400"
-                    )}>NAVIGASI SLIP GAJI CEPAT</p>
-                  </div>
-                  
-                  <div className="flex-1 w-full md:max-w-md max-h-[160px] overflow-y-auto no-scrollbar pr-2 space-y-2">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2 border-b border-slate-100 dark:border-white/5">
+                    <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
+                       <Users size={14} />
+                    </div>
                     {employees.map((emp, idx) => {
                       const isSelected = selectedEmployeeForSlip?.id === emp.id;
                       const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length];
-                      
                       return (
-                        <div 
+                        <button
                           key={emp.id}
                           onClick={() => setSelectedEmployeeForSlip(emp)}
                           className={cn(
-                            "flex items-center gap-4 p-3 rounded-2xl cursor-pointer transition-all duration-300 group border",
+                            "flex items-center gap-2 py-1.5 px-3 rounded-full transition-all duration-300 border shrink-0",
                             isSelected 
-                              ? (theme === 'dark' ? "bg-blue-600 border-blue-500 shadow-lg shadow-blue-500/40 translate-x-2" : "bg-slate-900 border-slate-800 text-white translate-x-2 shadow-lg")
-                              : (theme === 'dark' ? "bg-white/5 border-white/5 hover:bg-white/10" : "bg-slate-50 border-slate-100 hover:bg-white hover:shadow-md")
+                              ? "bg-pink-500 border-pink-600 text-white shadow-lg shadow-pink-500/30 scale-105"
+                              : "bg-slate-50 border-slate-100 text-slate-500"
                           )}
                         >
-                          <div className={cn(
-                            "w-10 h-10 rounded-full flex items-center justify-center text-[10px] font-black text-white shadow-inner shrink-0",
-                            avatarColor
-                          )}>
+                          <div className={cn("w-5 h-5 rounded-full flex items-center justify-center text-[7px] font-black text-white shrink-0", avatarColor)}>
                              {getEmployeeInitials(emp.name)}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className={cn(
-                              "text-[11px] font-black uppercase tracking-tight truncate",
-                              isSelected ? (theme === 'dark' ? "text-white" : "text-white") : (theme === 'dark' ? "text-slate-200" : "text-slate-700")
-                            )}>
-                              {emp.name}
-                            </h4>
-                            <p className={cn(
-                              "text-[8px] font-bold uppercase tracking-widest truncate",
-                              isSelected ? (theme === 'dark' ? "text-blue-100" : "text-slate-400") : (theme === 'dark' ? "text-slate-500" : "text-slate-400")
-                            )}>
-                              {emp.role}
-                            </p>
-                          </div>
-                          {isSelected && (
-                             <CheckCircle2 className="w-4 h-4 text-white animate-in zoom-in" />
-                          )}
-                        </div>
+                          <span className="text-[9px] font-black uppercase whitespace-nowrap">{emp.name.split(' ')[0]}</span>
+                        </button>
                       );
                     })}
                   </div>
+
+                  {selectedEmployeeForSlip ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-1 animate-in slide-in-from-top-2 duration-300">
+                       <div className="space-y-1">
+                          <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Gaji Pokok</label>
+                          <Input
+                            value={(slipData[selectedEmployeeForSlip.id]?.baseSalary || 0).toLocaleString('id-ID')}
+                            onChange={(e) => handleUpdateSlipData(selectedEmployeeForSlip.id, 'baseSalary', Number(e.target.value.replace(/\D/g, '')))}
+                            className="h-9 text-[10px] rounded-lg bg-slate-50/50 border-slate-100 font-bold px-3 focus:bg-white transition-all"
+                          />
+                       </div>
+                       <div className="space-y-1">
+                          <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Tunjangan</label>
+                          <Input
+                            value={(slipData[selectedEmployeeForSlip.id]?.allowance || 0).toLocaleString('id-ID')}
+                            onChange={(e) => handleUpdateSlipData(selectedEmployeeForSlip.id, 'allowance', Number(e.target.value.replace(/\D/g, '')))}
+                            className="h-9 text-[10px] rounded-lg bg-slate-50/50 border-slate-100 font-bold px-3 focus:bg-white transition-all"
+                          />
+                       </div>
+                       <div className="space-y-1">
+                          <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Lembur</label>
+                          <Input
+                            value={(slipData[selectedEmployeeForSlip.id]?.overtime || 0).toLocaleString('id-ID')}
+                            onChange={(e) => handleUpdateSlipData(selectedEmployeeForSlip.id, 'overtime', Number(e.target.value.replace(/\D/g, '')))}
+                            className="h-9 text-[10px] rounded-lg bg-slate-50/50 border-slate-100 font-bold px-3 focus:bg-white transition-all"
+                          />
+                       </div>
+                       <div className="space-y-1">
+                          <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">THR/Bonus</label>
+                          <Input
+                            value={(slipData[selectedEmployeeForSlip.id]?.thr || 0).toLocaleString('id-ID')}
+                            onChange={(e) => handleUpdateSlipData(selectedEmployeeForSlip.id, 'thr', Number(e.target.value.replace(/\D/g, '')))}
+                            className="h-9 text-[10px] rounded-lg bg-slate-50/50 border-slate-100 font-bold px-3 focus:bg-white transition-all"
+                          />
+                       </div>
+                       <div className="space-y-1">
+                          <label className="text-[7px] font-black text-rose-400 uppercase tracking-widest ml-1">Potongan (-)</label>
+                          <Input
+                            value={(slipData[selectedEmployeeForSlip.id]?.alphaDeduction || 0).toLocaleString('id-ID')}
+                            onChange={(e) => handleUpdateSlipData(selectedEmployeeForSlip.id, 'alphaDeduction', Number(e.target.value.replace(/\D/g, '')))}
+                            className="h-9 text-[10px] rounded-lg bg-rose-50/30 border-rose-100 font-bold text-rose-600 px-3 focus:bg-white transition-all"
+                          />
+                       </div>
+                       <div className="space-y-1">
+                          <label className="text-[7px] font-black text-indigo-400 uppercase tracking-widest ml-1">Catatan HRD</label>
+                          <Input
+                            value={slipData[selectedEmployeeForSlip.id]?.hrdNotes || ""}
+                            onChange={(e) => handleUpdateSlipData(selectedEmployeeForSlip.id, 'hrdNotes', e.target.value)}
+                            placeholder="..."
+                            className="h-9 text-[10px] rounded-lg bg-indigo-50/10 border-indigo-100 font-bold px-3 focus:bg-white transition-all"
+                          />
+                       </div>
+                    </div>
+                  ) : (
+                    <div className="py-2 text-center">
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Geser & Pilih Karyawan untuk Input Gaji</p>
+                    </div>
+                  )}
                 </div>
-                {theme === 'dark' && <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>}
               </div>
 
               <div className="space-y-8">
-              {selectedEmployeeForSlip ? (
-                <Card className="border-none shadow-2xl bg-white rounded-xl overflow-hidden max-w-2xl mx-auto border border-slate-50 animate-in zoom-in-95 duration-500">
-                  <div className="p-14 space-y-10">
-                    <div className="text-center space-y-4">
-                      <div className="w-16 h-1 bg-indigo-500 rounded-full mx-auto"></div>
-                      <h2 className="text-2xl font-black text-slate-900 tracking-tighter">SLIP GAJI KARYAWAN</h2>
-                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.4em]">PERIODE: {new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase()}</p>
-                    </div>
+                {selectedEmployeeForSlip ? (
+                  <div className="space-y-8 animate-in fade-in duration-500">
+                    <div className="w-full overflow-x-auto no-scrollbar pb-10">
+                      <div className="min-w-[210mm] flex justify-center p-6">
+                        <Card className="w-[210mm] h-auto min-h-[200mm] border-none bg-white rounded-none overflow-hidden relative font-sans text-slate-900 p-0 shadow-none">
 
-                    <div className="grid grid-cols-2 gap-12 py-10 border-y border-slate-50">
-                      <div className="space-y-6">
-                        <div>
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Penerima</p>
-                          <p className="text-lg font-black text-slate-900 tracking-tight uppercase">{selectedEmployeeForSlip.name.toUpperCase()}</p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Jabatan</p>
-                          <p className="text-xs font-black text-slate-500 tracking-widest uppercase">{selectedEmployeeForSlip.role.toUpperCase()}</p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Ringkasan Kehadiran</p>
-                          <div className="flex gap-4 mt-2">
-                            <div className="text-center">
-                              <p className="text-xs font-black text-emerald-600">
-                                {attendances.filter(a => a.employeeId === selectedEmployeeForSlip.id && a.status === 'Hadir' && a.date.startsWith(new Date().toISOString().substring(0, 7))).length}
-                              </p>
-                              <p className="text-[7px] font-bold text-slate-400 uppercase">Hadir</p>
+                        {/* Boxed Header (PRECISION ALIGNMENT) */}
+                        <div className="pt-12 px-[25mm]">
+                          <div className="border-2 border-slate-900 rounded-xl p-6 flex items-center justify-between bg-slate-50/30">
+                            <div className="flex items-center gap-6">
+                              <img
+                                src="https://mrrfmrzhumcmhmqjceul.supabase.co/storage/v1/object/sign/public-images/IMG-20260425-WA0010.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNGYxMmNiMy01YWU4LTRjYjQtYTgwZS00ZWEwMTlhOWE3YTciLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwdWJsaWMtaW1hZ2VzL0lNRy0yMDI2MDQyNS1XQTAwMTAucG5nIiwiaWF0IjoxNzc3MTUwMDg1LCJleHAiOjE3Nzc3NTQ4ODV9.-7eC44SPNDU5Gw4gI8tOXxjgYU7gM-32VaSiPU_fjYA"
+                                className="h-16 w-auto object-contain"
+                                alt="Logo"
+                              />
+                              <div className="h-12 w-[1px] bg-slate-300" />
                             </div>
-                            <div className="text-center">
-                              <p className="text-xs font-black text-blue-500">
-                                {attendances.filter(a => a.employeeId === selectedEmployeeForSlip.id && a.status === 'Izin' && a.date.startsWith(new Date().toISOString().substring(0, 7))).length}
+                            <div className="flex-1 text-center pr-10">
+                              <p className="text-2xl font-black tracking-[0.4em] uppercase">
+                                KEDAI <span className="text-blue-600">ELVERA</span> 57
                               </p>
-                              <p className="text-[7px] font-bold text-slate-400 uppercase">Izin</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-xs font-black text-rose-500">
-                                {attendances.filter(a => a.employeeId === selectedEmployeeForSlip.id && a.status === 'Alpha' && a.date.startsWith(new Date().toISOString().substring(0, 7))).length}
-                              </p>
-                              <p className="text-[7px] font-bold text-slate-400 uppercase">Alpha</p>
+                              <p className="text-[10px] font-bold text-slate-400 tracking-[0.2em] mt-1 italic">DOKUMEN RESMI PENGGAJIAN</p>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="space-y-6 text-right">
-                        <div>
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Nomor ID</p>
-                          <p className="text-sm font-black text-slate-900">#ELV-{selectedEmployeeForSlip.id.split('-')[0].toUpperCase()}</p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Status Pekerjaan</p>
-                          <Badge className="bg-indigo-600 text-white border-none font-black tracking-widest px-4 py-1.5 text-[9px]">FULL TIME</Badge>
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="space-y-5 bg-slate-50/50 p-8 rounded-3xl border border-slate-100">
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Gaji Pokok Dasar</span>
-                        <span className="font-black text-slate-900">{formatCurrency(selectedEmployeeForSlip.salary)}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-rose-600">
-                        <span className="font-bold uppercase text-[10px] tracking-widest">Potongan Alpha</span>
-                        {(() => {
-                          const currentMonth = new Date().toISOString().substring(0, 7);
-                          const alphaCount = attendances.filter(a => a.employeeId === selectedEmployeeForSlip.id && a.status === 'Alpha' && a.date.startsWith(currentMonth)).length;
-                          const deductionRate = selectedEmployeeForSlip.salary / 26;
-                          const totalDeduction = alphaCount * deductionRate;
-                          return (
-                            <div className="text-right">
-                              <p className="font-black">-{formatCurrency(totalDeduction)}</p>
-                              <p className="text-[8px] font-bold">({alphaCount} Hari Tanpa Keterangan)</p>
+                        <div className="px-[25mm] space-y-12 pt-10">
+                            {/* Title Section (TANPA GARIS BAWAH) */}
+                            <div className="text-center">
+                              <h1 className="text-2xl font-bold tracking-[0.2em] uppercase">SLIP GAJI</h1>
                             </div>
-                          );
-                        })()}
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Bonus & Tunjangan</span>
-                        <span className="font-black text-slate-900">{formatCurrency(0)}</span>
-                      </div>
-                      <div className="pt-6 border-t border-slate-200 flex justify-between items-end">
-                        <div>
-                          <p className="text-[9px] font-black text-indigo-500 uppercase tracking-[0.3em] mb-1">Total Penerimaan</p>
-                          <span className="text-sm font-black text-slate-400">NET TAKE HOME PAY</span>
-                        </div>
-                        <span className="text-3xl font-black text-indigo-600 tracking-tighter">
-                          {(() => {
-                            const currentMonth = new Date().toISOString().substring(0, 7);
-                            const alphaCount = attendances.filter(a => a.employeeId === selectedEmployeeForSlip.id && a.status === 'Alpha' && a.date.startsWith(currentMonth)).length;
-                            const deductionRate = selectedEmployeeForSlip.salary / 26;
-                            const totalDeduction = alphaCount * deductionRate;
-                            const netPay = Math.max(0, selectedEmployeeForSlip.salary - totalDeduction);
-                            return formatCurrency(netPay);
-                          })()}
-                        </span>
+
+                            {/* Metadata Section (ALIGNED WITH TABLE) */}
+                            <div className="space-y-1.5 max-w-sm">
+                              <div className="flex text-sm">
+                                <span className="w-24 text-left">Tanggal</span>
+                                <span className="mx-2">:</span>
+                                <span className="flex-1 border-b border-dotted border-slate-400 font-medium">{new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                              </div>
+                              <div className="flex text-sm">
+                                <span className="w-24 text-left">Nama</span>
+                                <span className="mx-2">:</span>
+                                <span className="flex-1 border-b border-dotted border-slate-400 font-bold uppercase">{selectedEmployeeForSlip.name}</span>
+                              </div>
+                              <div className="flex text-sm">
+                                <span className="w-24 text-left">Jabatan</span>
+                                <span className="mx-2">:</span>
+                                <span className="flex-1 border-b border-dotted border-slate-400 font-medium uppercase">{selectedEmployeeForSlip.role}</span>
+                              </div>
+                            </div>
+
+                            {/* Financial Table Section (ALIGNED) */}
+                            <div className="pt-8 space-y-3">
+                              <div className="flex items-center text-base">
+                                  <span className="w-64 font-semibold uppercase text-xs tracking-wider">Gaji Pokok Dasar</span>
+                                  <span className="w-8">:</span>
+                                  <span className="w-8">Rp</span>
+                                  <span className="flex-1 border-b border-dotted border-slate-400 text-right pb-0.5">{(slipData[selectedEmployeeForSlip.id]?.baseSalary || 0).toLocaleString('id-ID')}</span>
+                              </div>
+                              <div className="flex items-center text-base">
+                                  <span className="w-64 font-semibold uppercase text-xs tracking-wider">Tunjangan Jabatan</span>
+                                  <span className="w-8">:</span>
+                                  <span className="w-8">Rp</span>
+                                  <span className="flex-1 border-b border-dotted border-slate-400 text-right pb-0.5">{(slipData[selectedEmployeeForSlip.id]?.allowance || 0).toLocaleString('id-ID')}</span>
+                              </div>
+                              <div className="flex items-center text-base">
+                                  <span className="w-64 font-semibold uppercase text-xs tracking-wider">Lembur / Bonus</span>
+                                  <span className="w-8">:</span>
+                                  <span className="w-8">Rp</span>
+                                  <span className="flex-1 border-b border-dotted border-slate-400 text-right pb-0.5">{(slipData[selectedEmployeeForSlip.id]?.overtime || 0).toLocaleString('id-ID')}</span>
+                              </div>
+                              <div className="flex items-center text-base">
+                                  <span className="w-64 font-semibold uppercase text-xs tracking-wider">THR Khusus</span>
+                                  <span className="w-8">:</span>
+                                  <span className="w-8">Rp</span>
+                                  <span className="flex-1 border-b border-dotted border-slate-400 text-right pb-0.5">{(slipData[selectedEmployeeForSlip.id]?.thr || 0).toLocaleString('id-ID')}</span>
+                              </div>
+                              <div className="flex items-center text-base text-rose-600">
+                                  <span className="w-64 font-bold uppercase text-xs tracking-wider">Potongan Absen / Alpha (-)</span>
+                                  <span className="w-8">:</span>
+                                  <span className="w-8 font-bold">Rp</span>
+                                  <span className="flex-1 border-b-2 border-slate-900 text-right pb-0.5 font-black">{(slipData[selectedEmployeeForSlip.id]?.alphaDeduction || 0).toLocaleString('id-ID')}</span>
+                                  <span className="ml-2 font-black text-slate-900 text-xl">+</span>
+                              </div>
+
+                            <div className="flex items-center pt-8 border-t-2 border-slate-100">
+                              <div className="flex-1 flex items-center bg-emerald-50/60 border border-emerald-100 px-6 py-4 rounded-xl shadow-sm">
+                                <span className="flex-1 font-bold text-sm uppercase tracking-[0.1em] text-emerald-900">GAJI BERSIH</span>
+                                <span className="w-8 text-sm font-bold text-emerald-800">:</span>
+                                <span className="w-8 font-bold text-sm text-emerald-800">Rp</span>
+                                <span className="w-64 text-right font-black text-2xl tracking-tight text-emerald-950">
+                                  {(() => {
+                                      const d = slipData[selectedEmployeeForSlip.id] || { baseSalary: 0, allowance: 0, overtime: 0, thr: 0, alphaDeduction: 0 };
+                                      const total = d.baseSalary + d.allowance + d.overtime + d.thr - d.alphaDeduction;
+                                      return total.toLocaleString('id-ID');
+                                  })()}
+                                </span>
+                              </div>
+                            </div>
+                            </div>
+
+                          {/* Signature & Note Section (BALANCED 2-COLUMN) */}
+                          <div className="pt-16 grid grid-cols-2 gap-16 items-end pb-12">
+                            <div className="flex flex-col items-center italic">
+                                <div className="text-center space-y-20">
+                                  <p className="text-[10px] font-bold uppercase underline">Penerima,</p>
+                                  <p className="text-[10px] font-black uppercase tracking-widest border-t border-slate-400 pt-1 px-4">{selectedEmployeeForSlip.name}</p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col justify-end">
+                               <div className="relative border-2 border-dashed border-slate-900 p-3 rounded-lg bg-slate-50/50 min-h-[90px] w-full max-w-[80mm] ml-auto">
+                                  <h4 className="text-[9px] font-black uppercase mb-1 tracking-widest opacity-40">Catatan HRD</h4>
+                                  <p className="text-[10px] font-medium leading-tight italic">
+                                     {slipData[selectedEmployeeForSlip.id]?.hrdNotes || "................................................"}
+                                  </p>
+                               </div>
+                            </div>
+                          </div>
+                          </div>
+                        </Card>
                       </div>
                     </div>
 
-                    <div className="pt-8 flex gap-4">
-                      <Button 
-                        onClick={() => pdfService.handleExportSlipPDF(selectedEmployeeForSlip, attendances)}
-                        className="flex-1 h-16 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] tracking-[0.2em] shadow-xl active:scale-95 transition-all">
-                        <Printer className="w-5 h-5 mr-3" />
-                        PRINT SLIP
+                    <div className="flex gap-4 px-6 max-w-xl mx-auto pb-10">
+                      <Button
+                        onClick={() => pdfService.handleExportSlipPDF(selectedEmployeeForSlip, slipData[selectedEmployeeForSlip.id])}
+                        className="flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] tracking-[0.2em] shadow-xl active:scale-95 transition-all">
+                        <Printer className="w-5 h-5 shrink-0" />
+                        <span>PRINT SLIP</span>
                       </Button>
-                      <Button 
-                        onClick={() => pdfService.handleExportSlipPDF(selectedEmployeeForSlip, attendances)}
-                        className="flex-1 h-16 rounded-2xl bg-white border-2 border-slate-100 text-slate-900 font-black text-[10px] tracking-[0.2em] shadow-sm hover:bg-slate-50 active:scale-95 transition-all"
+                      <Button
+                        onClick={() => pdfService.handleExportSlipPDF(selectedEmployeeForSlip, slipData[selectedEmployeeForSlip.id])}
+                        className="flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl bg-white border-2 border-slate-100 text-slate-900 font-black text-[10px] tracking-[0.2em] shadow-sm hover:bg-slate-50 active:scale-95 transition-all"
                       >
-                        <FileDown className="w-5 h-5 mr-3" />
-                        DOWNLOAD
+                        <FileDown className="w-5 h-5 shrink-0" />
+                        <span>DOWNLOAD</span>
                       </Button>
                     </div>
                   </div>
-                </Card>
-              ) : (
-                <div className="p-24 text-center bg-white rounded-xl border border-slate-100 shadow-sm space-y-6">
-                  <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto border-4 border-white shadow-inner">
-                    <Receipt className="w-12 h-12 text-slate-200" />
+                ) : (
+                  <div className="p-24 text-center bg-white rounded-xl border border-slate-100 shadow-sm space-y-6">
+                    <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto border-4 border-white shadow-inner">
+                      <Receipt className="w-12 h-12 text-slate-200" />
+                    </div>
+                    <p className="text-slate-400 font-black uppercase tracking-[0.4em] text-xs max-w-xs mx-auto leading-relaxed">Pilih Nama Karyawan di atas Untuk Mengakses Slip Gaji Resmi</p>
                   </div>
-                  <p className="text-slate-400 font-black uppercase tracking-[0.4em] text-xs max-w-xs mx-auto leading-relaxed">Pilih Nama Karyawan di samping Untuk Mengakses Slip Gaji Resmi</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {karyawanTab === 'jadwal' && (
           <div className="space-y-8 animate-in fade-in zoom-in-95 duration-700 pt-[280px]">

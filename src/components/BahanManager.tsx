@@ -227,11 +227,10 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
         </p>
       </div>
 
-      <div className="pt-24 px-6">
-        {/* Top Navigation Cards (GOD MODE LEVEL 10000) */}
+      <div className="pt-24 px-6 h-full">
+        {/* Top Navigation Cards (CENTRAL HUB MODE) */}
         {activeManagerTab === 'main' ? (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex flex-col justify-center min-h-[60vh] gap-4">
             {/* Card 1: DATABASE BAHAN BAKU */}
             <div
               onClick={() => {
@@ -240,7 +239,7 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
                 setSelectedRecipeId(null);
               }}
               className={cn(
-                "relative overflow-hidden group cursor-pointer transition-all duration-300 rounded-[2rem] p-6 border h-24 flex flex-col justify-center shadow-sm",
+                "relative overflow-hidden group cursor-pointer transition-all duration-300 rounded-[2rem] p-6 border h-28 flex flex-col justify-center shadow-sm",
                 "bg-white border-slate-100 hover:bg-blue-50 hover:shadow-lg shadow-slate-200/50"
               )}
             >
@@ -267,7 +266,7 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
                 setActiveManagerTab('resep');
               }}
               className={cn(
-                "relative overflow-hidden group cursor-pointer transition-all duration-300 rounded-[2rem] p-6 border h-24 flex flex-col justify-center shadow-sm",
+                "relative overflow-hidden group cursor-pointer transition-all duration-300 rounded-[2rem] p-6 border h-28 flex flex-col justify-center shadow-sm",
                 "bg-white border-slate-100 hover:bg-cyan-50 hover:shadow-lg shadow-slate-200/50"
               )}
             >
@@ -285,11 +284,10 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
                   {recipes.length} MENU TERSEDIA
                 </p>
               </div>
-              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-colors" />
+              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/30 transition-colors" />
             </div>
           </div>
-        </>
-      ) : (
+        ) : (
         <div className="flex items-center gap-3 mb-6 bg-blue-500/10 p-3 rounded-2xl border border-blue-500/20">
           <Button
             variant="ghost"
