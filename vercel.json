@@ -1,0 +1,29 @@
+{
+  "env": {
+    "VITE_SUPABASE_URL": "https://citgvmqzsopvbmxxxuea.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "sb_publishable_uYISTh23yy8bueVIPep-cw_xi5utgGU"
+  },
+  "build": {
+    "env": {
+      "VITE_SUPABASE_URL": "https://citgvmqzsopvbmxxxuea.supabase.co",
+      "VITE_SUPABASE_ANON_KEY": "sb_publishable_uYISTh23yy8bueVIPep-cw_xi5utgGU"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ]
+}
