@@ -449,11 +449,11 @@ function KasirGoContent({
   return (
     <div className={cn(
       "h-[100dvh] flex flex-col transition-colors duration-500",
-      theme === 'dark' ? "bg-[#0a0a0c]" : "bg-slate-50"
+      "bg-gradient-to-br from-[#f0f9ff] via-[#e0f2fe] to-[#dbeafe]"
     )}>
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} onBack={onBack} onToggleSettings={() => setIsSettingsOpen(true)} />
 
-      <main className="flex-1 overflow-hidden relative">
+      <main className="flex-1 overflow-hidden relative bg-transparent">
         <AnimatePresence mode="wait">
           {activeTab === 'kasir' && (
             <motion.div
@@ -489,7 +489,7 @@ function KasirGoContent({
               </div>
 
               <div className={cn(
-                "fixed inset-0 z-40 md:relative md:inset-auto md:w-96 md:h-full md:flex transition-transform duration-500 ease-in-out bg-white/10 backdrop-blur-sm",
+                "fixed inset-0 z-40 md:relative md:inset-auto md:w-96 md:h-full md:flex transition-transform duration-500 ease-in-out bg-white/40 backdrop-blur-xl",
                 isBillingOpen ? "translate-y-0" : "translate-y-full md:translate-y-0"
               )}>
                 <BillingSection
@@ -728,7 +728,9 @@ function KasirGoContent({
                           }}
                           className={cn(
                             "flex-1 h-8 rounded-lg text-[8px] font-black uppercase tracking-tight transition-all",
-                            (editingRecipeId ? editMenuData.category : newItem.category) === cat ? "bg-slate-900 text-white shadow-sm" : "text-slate-400 hover:text-slate-600"
+                            (editingRecipeId ? editMenuData.category : newItem.category) === cat
+                              ? (cat === 'Makanan' ? "bg-orange-500 text-white shadow-sm" : "bg-slate-900 text-white shadow-sm")
+                              : "text-slate-400 hover:text-slate-600"
                           )}
                         >
                           {cat}
