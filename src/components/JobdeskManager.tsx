@@ -29,7 +29,7 @@ import {
   Clock
 } from "lucide-react";
 import { Employee, ShiftType, EditModalState, Attendance } from "../types";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency, cn, toTitleCase } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -387,9 +387,9 @@ export const JobdeskManager: React.FC<JobdeskManagerProps> = ({
                     Nama Lengkap
                   </label>
                   <Input 
-                    placeholder="BUDI SANTOSO"
+                    placeholder="Budi Santoso"
                     value={newEmployee.name}
-                    onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value.toUpperCase()})}
+                    onChange={(e) => setNewEmployee({...newEmployee, name: toTitleCase(e.target.value)})}
                     className="h-14 pl-4 rounded-2xl border-slate-100 bg-slate-50/50 text-sm font-semibold text-slate-900 placeholder:text-slate-300 focus:bg-white focus:ring-4 focus:ring-primary/5 transition-all duration-200"
                   />
                 </div>
@@ -401,9 +401,9 @@ export const JobdeskManager: React.FC<JobdeskManagerProps> = ({
                       Jabatan
                     </label>
                     <Input 
-                      placeholder="COOK / SERVER"
+                      placeholder="Cook / Server"
                       value={newEmployee.role}
-                      onChange={(e) => setNewEmployee({...newEmployee, role: e.target.value.toUpperCase()})}
+                      onChange={(e) => setNewEmployee({...newEmployee, role: toTitleCase(e.target.value)})}
                       className="h-14 pl-4 rounded-2xl border-slate-100 bg-slate-50/50 text-sm font-semibold text-slate-900 placeholder:text-slate-300 focus:bg-white focus:ring-4 focus:ring-primary/5 transition-all duration-200"
                     />
                   </div>

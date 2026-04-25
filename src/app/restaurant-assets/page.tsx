@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../../lib/supabase';
-import { formatCurrency, formatIDR, formatNumber, parseNumber, cn, generateId } from '../../lib/utils';
+import { formatCurrency, formatIDR, formatNumber, parseNumber, cn, generateId, toTitleCase } from '../../lib/utils';
 import { PriceInput } from "../../components/PriceInput";
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -289,17 +289,17 @@ export default function RestaurantAssetsPage({
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                 </div>
 
-                <div className="flex gap-2 min-w-[160px]">
+                <div className="flex gap-2 min-w-[140px]">
                   <div className="relative w-full">
                     <select
                       value={filterCategory}
                       onChange={e => setFilterCategory(e.target.value)}
-                      className="w-full h-12 pl-6 pr-10 rounded-2xl bg-white border border-slate-100 shadow-sm text-xs font-bold outline-none appearance-none"
+                      className="w-full h-11 pl-4 pr-10 rounded-xl bg-white border border-slate-100 shadow-sm text-[10px] font-black uppercase tracking-tight outline-none appearance-none cursor-pointer hover:border-blue-200 transition-all"
                     >
-                      <option value="Semua">Semua Kategori</option>
-                      {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      <option value="Semua">KATEGORI: SEMUA</option>
+                      {CATEGORIES.map(c => <option key={c} value={c}>{c.toUpperCase()}</option>)}
                     </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
                   </div>
                 </div>
               </div>
@@ -515,7 +515,7 @@ export default function RestaurantAssetsPage({
                   <input
                     placeholder="Contoh: Blender Philips"
                     value={newAsset.name}
-                    onChange={e => setNewAsset({...newAsset, name: e.target.value})}
+                    onChange={e => setNewAsset({...newAsset, name: toTitleCase(e.target.value)})}
                     className={cn(
                       "w-full h-9 px-4 rounded-xl text-xs font-bold outline-none transition-all",
                       theme === 'dark' ? "bg-white/5 border border-white/10 text-white focus:border-blue-500/50" : "bg-slate-50 border-none text-slate-900 focus:ring-2 focus:ring-blue-500/20"
@@ -651,7 +651,7 @@ export default function RestaurantAssetsPage({
                    <input
                      placeholder="Ganti pisau blender..."
                      value={newMaintenance.description}
-                     onChange={e => setNewMaintenance({...newMaintenance, description: e.target.value})}
+                     onChange={e => setNewMaintenance({...newMaintenance, description: toTitleCase(e.target.value)})}
                      className={cn(
                        "w-full h-10 px-4 rounded-xl text-xs font-bold outline-none",
                        theme === 'dark' ? "bg-white/5 border border-white/10 text-white" : "bg-slate-50 border-none text-slate-900"

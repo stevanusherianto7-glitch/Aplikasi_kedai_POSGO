@@ -11,7 +11,7 @@ import { StorageManager } from "./components/StorageManager";
 import { useAppState } from "./hooks/useAppState";
 import { Ingredient, Recipe, Employee, Transaction, Expense } from "./types";
 import { CATEGORIES, JOBDESK_MARKDOWN } from "./constants";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency, cn, toTitleCase } from "@/lib/utils";
 import * as pdfService from "./services/pdfService";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Dialog, DialogContent } from "@/components/ui/dialog";

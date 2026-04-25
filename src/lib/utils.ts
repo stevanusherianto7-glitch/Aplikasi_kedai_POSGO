@@ -27,6 +27,14 @@ export function formatIDR(amount: number | string | undefined | null): string {
   }).format(num).replace('Rp', 'Rp\u00A0');
 }
 
+export function toTitleCase(str: string): string {
+  if (!str) return "";
+  return str.replace(
+    /\w\S*/g,
+    (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+  );
+}
+
 export function generateId(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();

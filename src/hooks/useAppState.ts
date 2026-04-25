@@ -42,49 +42,50 @@ export function useAppState() {
     const loadData = async () => {
       try {
         setIsSyncing(true);
-        // Load data from Supabase only
         if (supabase) {
-          const [
-            { data: ingData },
-            { data: recData },
-            { data: empData },
-            { data: txData },
-            { data: expData },
-            { data: assetData },
-            { data: attData },
-            { data: shiftData },
-            { data: incomeData },
-            { data: settingsData }
-          ] = await Promise.all([
+          const results = await Promise.all([
             supabase.from('ingredients').select('*'),
-            supabase.from('recipes').select('*, recipe_items(*)'),
+            supabase.from('katalog menu baru').select('*, recipe_items(*)'),
             supabase.from('employees').select('*'),
-            supabase.from('orders').select('*, order_items(*)').order('created_at', { ascending: false }).limit(100),
-            supabase.from('expenses').select('*').order('created_at', { ascending: false }),
-            supabase.from('restaurant_assets').select('*'),
-            supabase.from('asset_maintenance_logs').select('*').order('date', { ascending: false }),
+            supabase.from('riwayat transaksi').select('*, order_items(*)').order('created_at', { ascending: false }).limit(100),
+            supabase.from('catatan pengeluaran harian').select('*').order('created_at', { ascending: false }),
+            supabase.from('kedai_assets').select('*'),
+            supabase.from('kedai_maintenance_logs').select('*').order('date', { ascending: false }),
             supabase.from('attendances').select('*'),
             supabase.from('shifts').select('*'),
-            supabase.from('daily_incomes').select('*'),
-            supabase.from('app_config').select('*')
+            supabase.from('pemasukan harian').select('*'),
+            supabase.from('app_config').select('*'),
+            supabase.from('shift_patterns').select('*')
           ]);
+
+          const ingData = results[0].data;
+          const recData = results[1].data;
+          const empData = results[2].data;
+          const txData = results[3].data;
+          const expData = results[4].data;
+          const assetData = results[5].data;
+          const logsData = results[6].data;
+          const attData = results[7].data;
+          const shiftData = results[8].data;
+          const incomeData = results[9].data;
+          const settingsData = results[10].data;
+          const patternData = results[11].data;
 
           if (settingsData) {
             const themeCfg = settingsData.find(s => s.id === 'theme');
             if (themeCfg) setTheme(themeCfg.value as 'light' | 'dark');
-            
-            const shiftCfg = settingsData.find(s => s.id === 'shifts');
-            if (shiftCfg && shiftCfg.value) {
-              try { setShifts(JSON.parse(shiftCfg.value)); } catch (e) { console.error("Shift parse error", e); }
-            }
-            
-            const patternCfg = settingsData.find(s => s.id === 'weekly_pattern');
-            if (patternCfg && patternCfg.value) {
-              try { setWeeklyPattern(JSON.parse(patternCfg.value)); } catch (e) { console.error("Pattern parse error", e); }
-            }
 
             const pettyCashCfg = settingsData.find(s => s.id === 'petty_cash');
             if (pettyCashCfg) setPettyCash(Number(pettyCashCfg.value));
+          }
+
+          if (patternData && patternData.length > 0) {
+            const mappedPattern: Record<string, ShiftType[]> = {};
+            patternData.forEach(p => {
+              try { mappedPattern[p.employee_id] = typeof p.pattern === 'string' ? JSON.parse(p.pattern) : p.pattern; }
+              catch (e) { console.error("Pattern parse error", e); }
+            });
+            setWeeklyPattern(mappedPattern);
           }
 
           if (ingData) {
@@ -213,6 +214,35 @@ export function useAppState() {
     };
 
     loadData();
+
+    // ─── REALTIME SUBSCRIPTIONS ───
+    if (supabase) {
+      const assetsChannel = supabase
+        .channel('assets-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'kedai_assets' }, async () => {
+          const { data } = await supabase.from('kedai_assets').select('*');
+          if (data) {
+            setRestaurantAssets(data.map(a => ({
+              id: a.id, name: a.name, category: a.category, quantity: Number(a.quantity),
+              price: Number(a.price), condition: a.condition, location: a.location
+            })));
+          }
+        })
+        .subscribe();
+
+      const maintenanceChannel = supabase
+        .channel('maintenance-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'kedai_maintenance_logs' }, async () => {
+          const { data } = await supabase.from('kedai_maintenance_logs').select('*').order('date', { ascending: false });
+          if (data) setMaintenanceLogs(data);
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(assetsChannel);
+        supabase.removeChannel(maintenanceChannel);
+      };
+    }
   }, []);
 
   // Sync to LocalStorage removed - Using Supabase as Single Source of Truth
@@ -232,9 +262,13 @@ export function useAppState() {
   React.useEffect(() => {
     if (isLoaded && supabase) {
       const sync = async () => {
-        await supabase.from('app_config').upsert([
-          { id: 'weekly_pattern', value: JSON.stringify(weeklyPattern) }
-        ]);
+        // Individual upsert for each employee pattern
+        for (const [empId, pattern] of Object.entries(weeklyPattern)) {
+          await supabase.from('shift_patterns').upsert({
+            employee_id: empId,
+            pattern: JSON.stringify(pattern)
+          }, { onConflict: 'employee_id' });
+        }
       };
       const timeoutId = setTimeout(sync, 2000);
       return () => clearTimeout(timeoutId);
@@ -307,6 +341,7 @@ export function useAppState() {
       try {
         const insertData: any = {
           name: recipe.name,
+          category: recipe.category || 'Makanan',
           selling_price: recipe.sellingPrice,
           markup_percent: 0,
           labor_cost: 0,
@@ -315,37 +350,24 @@ export function useAppState() {
           user_id: DEFAULT_USER_ID
         };
 
-        const { data, error } = await supabase.from('recipes').insert([insertData]).select();
+        const { data, error } = await supabase.from('katalog menu baru').insert([insertData]).select();
 
-        if (error) {
-           console.error("Supabase insert error:", error);
-           throw error;
-        }
-
+        if (error) throw error;
         if (data && data.length > 0) {
-          const newRecipe = {
-            ...recipe,
-            id: data[0].id,
-            category: recipe.category || 'Makanan'
-          };
+          const newRecipe = { ...recipe, id: data[0].id };
           setRecipes(prev => [...prev, newRecipe]);
           alert("Menu berhasil disimpan ke Cloud!");
           return newRecipe;
         }
-      } catch (e: any) {
-        console.error("Error adding recipe to Supabase:", e);
-        setRecipes(prev => [...prev, recipe]);
-      }
-    } else {
-      setRecipes(prev => [...prev, recipe]);
+      } catch (e: any) { console.error("Error adding recipe", e); }
     }
+    setRecipes(prev => [...prev, recipe]);
   };
 
   const handleUpdateRecipe = async (updatedRecipe: Recipe) => {
     setRecipes(prev => prev.map(r => r.id === updatedRecipe.id ? updatedRecipe : r));
     if (supabase) {
-      // Update main recipe
-      await supabase.from('recipes').update({
+      await supabase.from('katalog menu baru').update({
         name: updatedRecipe.name,
         category: updatedRecipe.category,
         selling_price: updatedRecipe.sellingPrice,
@@ -356,15 +378,12 @@ export function useAppState() {
         rounded_selling_price: updatedRecipe.roundedSellingPrice
       }).eq('id', updatedRecipe.id);
 
-      // Sync recipe items (Simple delete and re-insert for God Mode consistency)
       await supabase.from('recipe_items').delete().eq('recipe_id', updatedRecipe.id);
       if (updatedRecipe.items.length > 0) {
         await supabase.from('recipe_items').insert(
           updatedRecipe.items.map(item => ({
-            id: generateId(),
-            recipe_id: updatedRecipe.id,
-            ingredient_id: item.ingredientId,
-            quantity_needed: item.quantityNeeded
+            id: generateId(), recipe_id: updatedRecipe.id,
+            ingredient_id: item.ingredientId, quantity_needed: item.quantityNeeded
           }))
         );
       }
@@ -373,22 +392,17 @@ export function useAppState() {
 
   const handleDeleteRecipe = async (id: string) => {
     setRecipes(prev => prev.filter(r => r.id !== id));
-    if (supabase) await supabase.from('recipes').delete().eq('id', id);
+    if (supabase) await supabase.from('katalog menu baru').delete().eq('id', id);
   };
 
   // --- TRANSACTIONS (ORDERS) ---
   const handleProcessTransaction = async (transaction: Transaction) => {
-    const finalTransaction: Transaction = {
-      ...transaction,
-      date: new Date().toISOString()
-    };
-
+    const finalTransaction: Transaction = { ...transaction, date: new Date().toISOString() };
     setTransactions(prev => [finalTransaction, ...prev]);
 
     if (supabase) {
       try {
-        // 1. Insert Order
-        const { data: orderData, error: orderError } = await supabase.from('orders').insert([{
+        const { data: orderData, error: orderError } = await supabase.from('riwayat transaksi').insert([{
           id: finalTransaction.id,
           total_amount: finalTransaction.totalPrice,
           payment_method: finalTransaction.paymentMethod || 'Tunai',
@@ -397,73 +411,39 @@ export function useAppState() {
 
         if (orderError) throw orderError;
 
-        // 2. Insert Order Items (This will trigger stock reduction in DB)
         if (orderData && orderData.length > 0) {
-          const orderId = orderData[0].id;
-          const { error: itemsError } = await supabase.from('order_items').insert(
+          await supabase.from('order_items').insert(
             finalTransaction.items.map(item => ({
-              id: generateId(),
-              order_id: orderId,
-              recipe_id: item.recipeId,
-              quantity: item.quantity,
-              subtotal: item.price * item.quantity,
-              user_id: DEFAULT_USER_ID
+              id: generateId(), order_id: orderData[0].id, recipe_id: item.recipeId,
+              quantity: item.quantity, subtotal: item.price * item.quantity, user_id: DEFAULT_USER_ID
             }))
           );
-          if (itemsError) throw itemsError;
         }
 
-        // 3. Update local ingredients state after DB trigger would have run
-        // In a real scenario, we might want to re-fetch ingredients
         const { data: freshIngs } = await supabase.from('ingredients').select('*');
         if (freshIngs) {
           setIngredients(freshIngs.map(i => ({
-            id: i.id,
-            name: i.name,
-            category: i.category,
-            purchasePrice: Number(i.purchase_price),
-            purchaseUnit: i.purchase_unit,
-            useUnit: i.use_unit as Unit,
-            conversionValue: Number(i.conversion_value),
-            stockQuantity: Number(i.stock_quantity),
-            lowStockThreshold: Number(i.low_stock_threshold)
+            id: i.id, name: i.name, category: i.category, purchasePrice: Number(i.purchase_price),
+            purchaseUnit: i.purchase_unit, useUnit: i.use_unit as Unit, conversionValue: Number(i.conversion_value),
+            stockQuantity: Number(i.stock_quantity), lowStockThreshold: Number(i.low_stock_threshold)
           })));
         }
-
-      } catch (e) {
-        console.error("Supabase Order Sync Error:", e);
-      }
+      } catch (e) { console.error("Transaction Error", e); }
     }
-
     return finalTransaction;
   };
 
   const handleVoidTransaction = async (id: string) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
-
     if (supabase) {
-      try {
-        // Delete Order (Cascades to order_items)
-        const { error: txError } = await supabase.from('orders').delete().eq('id', id);
-        if (txError) throw txError;
-
-        // Re-fetch ingredients to sync restored stock from DB
-        const { data: freshIngs } = await supabase.from('ingredients').select('*');
-        if (freshIngs) {
-          setIngredients(freshIngs.map(i => ({
-            id: i.id,
-            name: i.name,
-            category: i.category,
-            purchasePrice: Number(i.purchase_price),
-            purchaseUnit: i.purchase_unit,
-            useUnit: i.use_unit as Unit,
-            conversionValue: Number(i.conversion_value),
-            stockQuantity: Number(i.stock_quantity),
-            low_stock_threshold: Number(i.low_stock_threshold)
-          })));
-        }
-      } catch (e) {
-        console.error("Supabase Void Order Sync Error:", e);
+      await supabase.from('riwayat transaksi').delete().eq('id', id);
+      const { data: freshIngs } = await supabase.from('ingredients').select('*');
+      if (freshIngs) {
+        setIngredients(freshIngs.map(i => ({
+          id: i.id, name: i.name, category: i.category, purchasePrice: Number(i.purchase_price),
+          purchaseUnit: i.purchase_unit, useUnit: i.use_unit as Unit, conversionValue: Number(i.conversion_value),
+          stockQuantity: Number(i.stock_quantity), lowStockThreshold: Number(i.low_stock_threshold)
+        })));
       }
     }
   };
@@ -516,59 +496,44 @@ export function useAppState() {
   const handleAddExpense = async (expenseData: Partial<Expense>) => {
     if (!expenseData.description || !expenseData.amount) return;
     const expense: Expense = {
-      id: generateId(),
-      date: new Date().toISOString(),
-      description: expenseData.description,
-      amount: Number(expenseData.amount),
+      id: generateId(), date: new Date().toISOString(),
+      description: expenseData.description, amount: Number(expenseData.amount),
       category: expenseData.category as any
     };
     setExpenses(prev => [expense, ...prev]);
     if (supabase) {
-      await supabase.from('expenses').insert([{
-        id: expense.id,
-        date: expense.date,
-        description: expense.description,
-        amount: expense.amount,
-        category: expense.category,
-        user_id: DEFAULT_USER_ID
+      await supabase.from('catatan pengeluaran harian').insert([{
+        id: expense.id, date: expense.date, description: expense.description,
+        amount: expense.amount, category: expense.category, user_id: DEFAULT_USER_ID
       }]);
     }
   };
 
   const handleDeleteExpense = async (id: string) => {
     setExpenses(prev => prev.filter(e => e.id !== id));
-    if (supabase) {
-      await supabase.from('expenses').delete().eq('id', id);
-    }
+    if (supabase) await supabase.from('catatan pengeluaran harian').delete().eq('id', id);
   };
 
   // --- DAILY INCOMES ---
   const handleUpdateDailyIncome = async (incomeData: Partial<Expense>) => {
     if (!incomeData.description || !incomeData.amount) return;
     const income: Expense = {
-      id: generateId(),
-      date: new Date().toISOString(),
-      description: incomeData.description,
-      amount: Number(incomeData.amount),
+      id: generateId(), date: new Date().toISOString(),
+      description: incomeData.description, amount: Number(incomeData.amount),
       category: 'Pemasukan' as any
     };
     setDailyIncomes(prev => [income, ...prev]);
     if (supabase) {
-      await supabase.from('daily_incomes').insert([{
-        id: income.id,
-        description: income.description,
-        amount: income.amount,
-        timestamp: income.date,
-        user_id: DEFAULT_USER_ID
+      await supabase.from('pemasukan harian').insert([{
+        id: income.id, description: income.description,
+        amount: income.amount, timestamp: income.date, user_id: DEFAULT_USER_ID
       }]);
     }
   };
 
   const handleDeleteDailyIncome = async (id: string) => {
     setDailyIncomes(prev => prev.filter(i => i.id !== id));
-    if (supabase) {
-      await supabase.from('daily_incomes').delete().eq('id', id);
-    }
+    if (supabase) await supabase.from('pemasukan harian').delete().eq('id', id);
   };
 
   // --- ATTENDANCE ---
@@ -625,7 +590,7 @@ export function useAppState() {
     if (editingId) {
       setRestaurantAssets(prev => prev.map(a => a.id === editingId ? { ...a, ...asset as RestaurantAsset } : a));
       if (supabase) {
-        await supabase.from('restaurant_assets').update({
+        await supabase.from('kedai_assets').update({
           name: asset.name,
           category: asset.category,
           quantity: asset.quantity,
@@ -638,7 +603,7 @@ export function useAppState() {
       const newAsset = { ...asset as RestaurantAsset, id: generateId() };
       setRestaurantAssets(prev => [...prev, newAsset]);
       if (supabase) {
-        await supabase.from('restaurant_assets').insert([{
+        await supabase.from('kedai_assets').insert([{
           ...newAsset,
           user_id: DEFAULT_USER_ID
         }]);
@@ -648,12 +613,12 @@ export function useAppState() {
 
   const handleDeleteAsset = async (id: string) => {
     setRestaurantAssets(prev => prev.filter(a => a.id !== id));
-    if (supabase) await supabase.from('restaurant_assets').delete().eq('id', id);
+    if (supabase) await supabase.from('kedai_assets').delete().eq('id', id);
   };
 
   const handleAddMaintenance = async (log: any, asset: RestaurantAsset) => {
     if (supabase) {
-      const { error } = await supabase.from('asset_maintenance_logs').insert([log]);
+      const { error } = await supabase.from('kedai_maintenance_logs').insert([log]);
       if (!error) {
         setMaintenanceLogs(prev => [log, ...prev]);
         if (asset.condition === 'Servis') {
