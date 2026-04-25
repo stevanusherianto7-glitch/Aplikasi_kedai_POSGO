@@ -4,16 +4,14 @@ import { supabase } from "../lib/supabase";
 import { ERP_ENGINE } from "../services/erpEngine";
 
 const generateId = () => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
 };
 
-const DEFAULT_USER_ID = 'e57a0505-1234-5678-90ab-c0de57f17ac1'; // Admin tenant ID
+const DEFAULT_USER_ID = 'e57a0505-1234-5678-90ab-c0de57f17ac1';
 
 export function useAppState() {
   const [ingredients, setIngredients] = React.useState<Ingredient[]>([]);
@@ -27,486 +25,241 @@ export function useAppState() {
   const [maintenanceLogs, setMaintenanceLogs] = React.useState<any[]>([]);
   const [pettyCash, setPettyCash] = React.useState<number>(0);
   const [isSyncing, setIsSyncing] = React.useState(false);
-  
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-
   const [shifts, setShifts] = React.useState<Record<string, Record<string, ShiftType>>>({});
-
   const [weeklyPattern, setWeeklyPattern] = React.useState<Record<string, ShiftType[]>>({});
-
   const [isLoaded, setIsLoaded] = React.useState(false);
 
-  // Load data - Hybrid (Supabase + Local Fallback)
-  React.useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsSyncing(true);
-        if (supabase) {
-          const results = await Promise.all([
-            supabase.from('ingredients').select('*'),
-            supabase.from('katalog menu baru').select('*, recipe_items(*)'),
-            supabase.from('employees').select('*'),
-            supabase.from('riwayat transaksi').select('*, order_items(*)').order('created_at', { ascending: false }).limit(100),
-            supabase.from('catatan pengeluaran harian').select('*').order('created_at', { ascending: false }),
-            supabase.from('kedai_assets').select('*'),
-            supabase.from('kedai_maintenance_logs').select('*').order('date', { ascending: false }),
-            supabase.from('attendances').select('*'),
-            supabase.from('shifts').select('*'),
-            supabase.from('pemasukan harian').select('*'),
-            supabase.from('app_config').select('*'),
-            supabase.from('shift_patterns').select('*')
-          ]);
+  const loadData = React.useCallback(async () => {
+    try {
+      setIsSyncing(true);
+      if (supabase) {
+        const results = await Promise.all([
+          supabase.from('ingredients').select('*'),
+          supabase.from('hpp_recipes').select('*, recipe_items(*)'),
+          supabase.from('employees').select('*'),
+          supabase.from('riwayat_transaksi').select('*, order_items(*)').order('created_at', { ascending: false }).limit(100),
+          supabase.from('catatan pengeluaran harian').select('*').order('created_at', { ascending: false }),
+          supabase.from('kedai_assets').select('*'),
+          supabase.from('kedai_maintenance_logs').select('*').order('date', { ascending: false }),
+          supabase.from('absensi').select('*'),
+          supabase.from('app_config').select('*'),
+          supabase.from('pemasukan_harian').select('*'),
+          supabase.from('shift_patterns').select('*'),
+          supabase.from('katalog _menu_baru').select('*')
+        ]);
 
-          const ingData = results[0].data;
-          const recData = results[1].data;
-          const empData = results[2].data;
-          const txData = results[3].data;
-          const expData = results[4].data;
-          const assetData = results[5].data;
-          const logsData = results[6].data;
-          const attData = results[7].data;
-          const shiftData = results[8].data;
-          const incomeData = results[9].data;
-          const settingsData = results[10].data;
-          const patternData = results[11].data;
+        const [ingD, recD, empD, txD, expD, assetD, logsD, attD, confD, incD, pattD, catalogD] = results.map(r => r.data || []);
 
-          if (settingsData) {
-            const themeCfg = settingsData.find(s => s.id === 'theme');
-            if (themeCfg) setTheme(themeCfg.value as 'light' | 'dark');
+        // ─── DATA PARITY CHECK: HPP vs Catalog ───
+        if (recD.length > 0 && catalogD) {
+          const catalogNames = new Set(catalogD.map((c: any) => c.name));
+          const missingInCatalog = recD.filter((r: any) => !catalogNames.has(r.name));
 
-            const pettyCashCfg = settingsData.find(s => s.id === 'petty_cash');
-            if (pettyCashCfg) setPettyCash(Number(pettyCashCfg.value));
-          }
-
-          if (patternData && patternData.length > 0) {
-            const mappedPattern: Record<string, ShiftType[]> = {};
-            patternData.forEach(p => {
-              try { mappedPattern[p.employee_id] = typeof p.pattern === 'string' ? JSON.parse(p.pattern) : p.pattern; }
-              catch (e) { console.error("Pattern parse error", e); }
-            });
-            setWeeklyPattern(mappedPattern);
-          }
-
-          if (ingData) {
-            const mappedIngs = ingData.map(i => ({
-              id: i.id,
-              name: i.name,
-              category: i.category,
-              purchasePrice: Number(i.purchase_price),
-              purchaseUnit: i.purchase_unit,
-              useUnit: i.use_unit as Unit,
-              conversionValue: Number(i.conversion_value),
-              stockQuantity: Number(i.stock_quantity),
-              lowStockThreshold: Number(i.low_stock_threshold)
-            }));
-            setIngredients(mappedIngs);
-          }
-
-          if (recData) {
-            const mappedRecs = recData.map(r => ({
-              id: r.id,
+          if (missingInCatalog.length > 0) {
+            console.log(`Syncing ${missingInCatalog.length} missing recipes to catalog...`);
+            await supabase.from('katalog _menu_baru').insert(missingInCatalog.map((r: any) => ({
               name: r.name,
-              category: r.category || 'Makanan',
-              sellingPrice: Number(r.selling_price),
-              markupPercent: Number(r.markup_percent),
-              laborCost: Number(r.labor_cost),
-              overheadCost: Number(r.overhead_cost),
-              shrinkagePercent: Number(r.shrinkage_percent),
-              roundedSellingPrice: r.rounded_selling_price ? Number(r.rounded_selling_price) : undefined,
-              items: (r.recipe_items || []).map((ri: any) => ({
-                id: ri.id,
-                ingredientId: ri.ingredient_id,
-                quantityNeeded: Number(ri.quantity_needed)
-              }))
-            }));
-            setRecipes(mappedRecs);
-          }
-
-          if (empData) {
-            setEmployees(empData.map(e => ({
-              id: e.id,
-              name: e.name,
-              role: e.role,
-              salary: Number(e.salary),
-              avatarColor: e.avatar_color,
-              initials: e.initials
-            })));
-          }
-
-          if (txData) {
-            setTransactions(txData.map(t => ({
-              id: t.id,
-              date: t.created_at,
-              totalPrice: Number(t.total_amount),
-              totalHpp: 0, // Need adjustment if tracking HPP per order
-              paymentMethod: t.payment_method || 'Tunai',
-              items: (t.order_items || []).map((oi: any) => ({
-                recipeId: oi.recipe_id,
-                quantity: oi.quantity,
-                price: Number(oi.subtotal) / oi.quantity
-              })),
-              timestamp: new Date(t.created_at),
-              orderNumber: t.order_number
-            })));
-          }
-
-          if (expData) {
-            setExpenses(expData.map(e => ({
-              id: e.id,
-              date: e.created_at,
-              description: e.description,
-              amount: Number(e.amount),
-              category: e.category
-            })));
-          }
-
-          if (assetData) {
-            setRestaurantAssets(assetData.map(a => ({
-              id: a.id,
-              name: a.name,
-              category: a.category,
-              quantity: Number(a.quantity),
-              price: Number(a.price),
-              condition: a.condition,
-              location: a.location
-            })));
-          }
-
-          if (logsData) {
-            setMaintenanceLogs(logsData);
-          }
-
-          if (attData) {
-            setAttendances(attData.map(a => ({
-              id: a.id,
-              employeeId: a.employee_id,
-              date: a.date,
-              status: a.status as any
-            })));
-          }
-
-          if (shiftData) {
-            const mappedShifts: Record<string, Record<string, ShiftType>> = {};
-            shiftData.forEach(s => {
-              if (!mappedShifts[s.employee_id]) mappedShifts[s.employee_id] = {};
-              mappedShifts[s.employee_id][s.date] = s.type as ShiftType;
-            });
-            setShifts(mappedShifts);
-          }
-
-          if (incomeData) {
-            setDailyIncomes(incomeData.map(i => ({
-              id: i.id,
-              date: i.timestamp,
-              description: i.description,
-              amount: Number(i.amount),
-              category: 'Pemasukan' as any
+              menu_kasir: r.category || 'Makanan',
+              price: r.rounded_selling_price || r.selling_price || 0,
+              user_id: DEFAULT_USER_ID
             })));
           }
         }
-      } catch (e) {
-        console.error("Data load error:", e);
-      } finally {
-        setIsLoaded(true);
-        setIsSyncing(false);
-      }
-    };
 
-    loadData();
-
-    // ─── REALTIME SUBSCRIPTIONS ───
-    if (supabase) {
-      const assetsChannel = supabase
-        .channel('assets-realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'kedai_assets' }, async () => {
-          const { data } = await supabase.from('kedai_assets').select('*');
-          if (data) {
-            setRestaurantAssets(data.map(a => ({
-              id: a.id, name: a.name, category: a.category, quantity: Number(a.quantity),
-              price: Number(a.price), condition: a.condition, location: a.location
-            })));
-          }
-        })
-        .subscribe();
-
-      const maintenanceChannel = supabase
-        .channel('maintenance-realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'kedai_maintenance_logs' }, async () => {
-          const { data } = await supabase.from('kedai_maintenance_logs').select('*').order('date', { ascending: false });
-          if (data) setMaintenanceLogs(data);
-        })
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(assetsChannel);
-        supabase.removeChannel(maintenanceChannel);
-      };
-    }
-  }, []);
-
-  // Sync to LocalStorage removed - Using Supabase as Single Source of Truth
-  React.useEffect(() => {
-    // No-op - removed localStorage sync
-  }, [ingredients, recipes, transactions, employees, expenses, pettyCash, isLoaded]);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    if (supabase) {
-      supabase.from('app_config').upsert({ id: 'theme', value: newTheme });
-    }
-  };
-
-  // Sync Patterns to Supabase (Shifts now synced individually)
-  React.useEffect(() => {
-    if (isLoaded && supabase) {
-      const sync = async () => {
-        // Individual upsert for each employee pattern
-        for (const [empId, pattern] of Object.entries(weeklyPattern)) {
-          await supabase.from('shift_patterns').upsert({
-            employee_id: empId,
-            pattern: JSON.stringify(pattern)
-          }, { onConflict: 'employee_id' });
-        }
-      };
-      const timeoutId = setTimeout(sync, 2000);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [weeklyPattern, isLoaded]);
-
-  // --- INGREDIENTS ---
-  const handleAddIngredient = async (newIngredient: Partial<Ingredient>, setIsAddingIngredient?: (val: boolean) => void) => {
-    if (!newIngredient.name || (newIngredient.purchasePrice || 0) <= 0 || (newIngredient.conversionValue || 0) <= 0) {
-      alert("Mohon lengkapi data bahan baku dengan benar!");
-      return;
-    }
-    
-    const ingredient: Ingredient = {
-      ...newIngredient as Ingredient,
-      name: newIngredient.name.trim(),
-      id: generateId(),
-    };
-    
-    setIngredients(prev => [...prev, ingredient]);
-    if (setIsAddingIngredient) setIsAddingIngredient(false);
-    
-    if (supabase) {
-      await supabase.from('ingredients').insert([{
-        id: ingredient.id,
-        name: ingredient.name,
-        category: ingredient.category,
-        purchase_price: ingredient.purchasePrice,
-        purchase_unit: ingredient.purchaseUnit,
-        use_unit: ingredient.useUnit,
-        conversion_value: ingredient.conversionValue,
-        stock_quantity: ingredient.stockQuantity,
-        low_stock_threshold: ingredient.lowStockThreshold,
-        user_id: DEFAULT_USER_ID
-      }]);
-    }
-  };
-
-  const deleteIngredient = async (id: string) => {
-    setIngredients(prev => prev.filter(ing => ing.id !== id));
-    if (supabase) {
-      try {
-        const { error } = await supabase.from('ingredients').delete().eq('id', id);
-        if (error) throw error;
-      } catch (e) {
-        console.error("Error deleting ingredient from Supabase:", e);
-      }
-    }
-  };
-
-  const handleUpdateIngredient = async (updatedIngredient: Ingredient) => {
-    setIngredients(prev => prev.map(ing => ing.id === updatedIngredient.id ? updatedIngredient : ing));
-    if (supabase) {
-      await supabase.from('ingredients').update({
-        name: updatedIngredient.name,
-        category: updatedIngredient.category,
-        purchase_price: updatedIngredient.purchasePrice,
-        purchase_unit: updatedIngredient.purchaseUnit,
-        use_unit: updatedIngredient.useUnit,
-        conversion_value: updatedIngredient.conversionValue,
-        stock_quantity: updatedIngredient.stockQuantity,
-        low_stock_threshold: updatedIngredient.lowStockThreshold
-      }).eq('id', updatedIngredient.id);
-    }
-  };
-
-  // --- RECIPES ---
-  const handleAddRecipe = async (recipe: Recipe) => {
-    if (supabase) {
-      try {
-        const insertData: any = {
-          name: recipe.name,
-          category: recipe.category || 'Makanan',
-          selling_price: recipe.sellingPrice,
-          markup_percent: 0,
-          labor_cost: 0,
-          overhead_cost: 0,
-          shrinkage_percent: 0,
-          user_id: DEFAULT_USER_ID
-        };
-
-        const { data, error } = await supabase.from('katalog menu baru').insert([insertData]).select();
-
-        if (error) throw error;
-        if (data && data.length > 0) {
-          const newRecipe = { ...recipe, id: data[0].id };
-          setRecipes(prev => [...prev, newRecipe]);
-          alert("Menu berhasil disimpan ke Cloud!");
-          return newRecipe;
-        }
-      } catch (e: any) { console.error("Error adding recipe", e); }
-    }
-    setRecipes(prev => [...prev, recipe]);
-  };
-
-  const handleUpdateRecipe = async (updatedRecipe: Recipe) => {
-    setRecipes(prev => prev.map(r => r.id === updatedRecipe.id ? updatedRecipe : r));
-    if (supabase) {
-      await supabase.from('katalog menu baru').update({
-        name: updatedRecipe.name,
-        category: updatedRecipe.category,
-        selling_price: updatedRecipe.sellingPrice,
-        markup_percent: updatedRecipe.markupPercent,
-        labor_cost: updatedRecipe.laborCost,
-        overhead_cost: updatedRecipe.overheadCost,
-        shrinkage_percent: updatedRecipe.shrinkagePercent,
-        rounded_selling_price: updatedRecipe.roundedSellingPrice
-      }).eq('id', updatedRecipe.id);
-
-      await supabase.from('recipe_items').delete().eq('recipe_id', updatedRecipe.id);
-      if (updatedRecipe.items.length > 0) {
-        await supabase.from('recipe_items').insert(
-          updatedRecipe.items.map(item => ({
-            id: generateId(), recipe_id: updatedRecipe.id,
-            ingredient_id: item.ingredientId, quantity_needed: item.quantityNeeded
-          }))
-        );
-      }
-    }
-  };
-
-  const handleDeleteRecipe = async (id: string) => {
-    setRecipes(prev => prev.filter(r => r.id !== id));
-    if (supabase) await supabase.from('katalog menu baru').delete().eq('id', id);
-  };
-
-  // --- TRANSACTIONS (ORDERS) ---
-  const handleProcessTransaction = async (transaction: Transaction) => {
-    const finalTransaction: Transaction = { ...transaction, date: new Date().toISOString() };
-    setTransactions(prev => [finalTransaction, ...prev]);
-
-    if (supabase) {
-      try {
-        const { data: orderData, error: orderError } = await supabase.from('riwayat transaksi').insert([{
-          id: finalTransaction.id,
-          total_amount: finalTransaction.totalPrice,
-          payment_method: finalTransaction.paymentMethod || 'Tunai',
-          user_id: DEFAULT_USER_ID
-        }]).select();
-
-        if (orderError) throw orderError;
-
-        if (orderData && orderData.length > 0) {
-          await supabase.from('order_items').insert(
-            finalTransaction.items.map(item => ({
-              id: generateId(), order_id: orderData[0].id, recipe_id: item.recipeId,
-              quantity: item.quantity, subtotal: item.price * item.quantity, user_id: DEFAULT_USER_ID
-            }))
-          );
+        if (confD) {
+          const t = confD.find((s: any) => s.id === 'theme');
+          if (t) setTheme(t.value as any);
+          const p = confD.find((s: any) => s.id === 'petty_cash');
+          if (p) setPettyCash(Number(p.value));
         }
 
-        const { data: freshIngs } = await supabase.from('ingredients').select('*');
-        if (freshIngs) {
-          setIngredients(freshIngs.map(i => ({
-            id: i.id, name: i.name, category: i.category, purchasePrice: Number(i.purchase_price),
-            purchaseUnit: i.purchase_unit, useUnit: i.use_unit as Unit, conversionValue: Number(i.conversion_value),
-            stockQuantity: Number(i.stock_quantity), lowStockThreshold: Number(i.low_stock_threshold)
-          })));
+        if (pattD.length > 0) {
+          const m: Record<string, ShiftType[]> = {};
+          pattD.forEach((p: any) => {
+            try { m[p.employee_id] = typeof p.pattern === 'string' ? JSON.parse(p.pattern) : p.pattern; } catch (e) {}
+          });
+          setWeeklyPattern(m);
         }
-      } catch (e) { console.error("Transaction Error", e); }
-    }
-    return finalTransaction;
-  };
 
-  const handleVoidTransaction = async (id: string) => {
-    setTransactions(prev => prev.filter(t => t.id !== id));
-    if (supabase) {
-      await supabase.from('riwayat transaksi').delete().eq('id', id);
-      const { data: freshIngs } = await supabase.from('ingredients').select('*');
-      if (freshIngs) {
-        setIngredients(freshIngs.map(i => ({
+        if (ingD) setIngredients(ingD.map((i: any) => ({
           id: i.id, name: i.name, category: i.category, purchasePrice: Number(i.purchase_price),
           purchaseUnit: i.purchase_unit, useUnit: i.use_unit as Unit, conversionValue: Number(i.conversion_value),
           stockQuantity: Number(i.stock_quantity), lowStockThreshold: Number(i.low_stock_threshold)
         })));
+
+        if (recD) setRecipes(recD.map((r: any) => ({
+          id: r.id, name: r.name, category: r.category || 'Makanan', sellingPrice: Number(r.selling_price),
+          markupPercent: Number(r.markup_percent), laborCost: Number(r.labor_cost), overheadCost: Number(r.overhead_cost),
+          shrinkagePercent: Number(r.shrinkage_percent), roundedSellingPrice: r.rounded_selling_price ? Number(r.rounded_selling_price) : undefined,
+          items: (r.recipe_items || []).map((ri: any) => ({ id: ri.id, ingredientId: ri.ingredient_id, quantityNeeded: Number(ri.quantity_needed) }))
+        })));
+
+        if (empD) setEmployees(empD.map((e: any) => ({ id: e.id, name: e.name, role: e.role, salary: Number(e.salary), avatarColor: e.avatar_color, initials: e.initials })));
+
+        if (txD) setTransactions(txD.map((t: any) => ({
+          id: t.id, date: t.created_at, totalPrice: Number(t.total_amount), totalHpp: 0,
+          paymentMethod: t.payment_method || 'Tunai', timestamp: new Date(t.created_at), orderNumber: t.order_number,
+          items: (t.order_items || []).map((oi: any) => ({ recipeId: oi.recipe_id, quantity: oi.quantity, price: Number(oi.subtotal) / (oi.quantity || 1) }))
+        })));
+
+        if (expD) setExpenses(expD.map((e: any) => ({ id: e.id, date: e.created_at, description: e.description, amount: Number(e.amount), category: e.category })));
+        if (assetD) setRestaurantAssets(assetD.map((a: any) => ({ id: a.id, name: a.name, category: a.category, quantity: Number(a.quantity), price: Number(a.price), condition: a.condition, location: a.location })));
+        if (logsD) setMaintenanceLogs(logsD);
+        if (attD) setAttendances(attD.map((a: any) => ({ id: a.id, employeeId: a.employee_id, date: a.date, status: a.status as any })));
+
+        if (shiftD) {
+          const ms: Record<string, Record<string, ShiftType>> = {};
+          shiftD.forEach((s: any) => {
+            if (!ms[s.employee_id]) ms[s.employee_id] = {};
+            ms[s.employee_id][s.date] = s.type as ShiftType;
+          });
+          setShifts(ms);
+        }
+
+        if (incD) setDailyIncomes(incD.map((i: any) => ({ id: i.id, date: i.timestamp, description: i.description, amount: Number(i.amount), category: 'Pemasukan' as any })));
       }
+    } catch (e) { console.error("Data load error:", e); }
+    finally { setIsLoaded(true); setIsSyncing(false); }
+  }, []);
+
+  React.useEffect(() => {
+    loadData();
+    if (supabase) {
+      const c1 = supabase.channel('assets-real').on('postgres_changes', { event: '*', schema: 'public', table: 'kedai_assets' }, () => loadData()).subscribe();
+      const c2 = supabase.channel('absensi-real').on('postgres_changes', { event: '*', schema: 'public', table: 'absensi' }, () => loadData()).subscribe();
+      const c3 = supabase.channel('recipe-real').on('postgres_changes', { event: '*', schema: 'public', table: 'hpp_recipes' }, () => loadData()).subscribe();
+      return () => { supabase.removeChannel(c1); supabase.removeChannel(c2); supabase.removeChannel(c3); };
+    }
+  }, [loadData]);
+
+  const toggleTheme = () => {
+    const n = theme === 'light' ? 'dark' : 'light';
+    setTheme(n);
+    if (supabase) supabase.from('app_config').upsert({ id: 'theme', value: n });
+  };
+
+  React.useEffect(() => {
+    if (isLoaded && supabase) {
+      const sync = async () => {
+        for (const [id, p] of Object.entries(weeklyPattern)) {
+          await supabase.from('shift_patterns').upsert({ employee_id: id, pattern: JSON.stringify(p) }, { onConflict: 'employee_id' });
+        }
+      };
+      const tid = setTimeout(sync, 2000);
+      return () => clearTimeout(tid);
+    }
+  }, [weeklyPattern, isLoaded]);
+
+  const handleAddIngredient = async (i: Partial<Ingredient>, cb?: (v: boolean) => void) => {
+    if (!i.name || (i.purchasePrice || 0) <= 0) return;
+    const ing: Ingredient = { ...i as Ingredient, name: i.name.trim(), id: generateId() };
+    setIngredients(prev => [...prev, ing]);
+    if (cb) cb(false);
+    if (supabase) await supabase.from('ingredients').insert([{ ...ing, purchase_price: ing.purchasePrice, purchase_unit: ing.purchaseUnit, use_unit: ing.useUnit, conversion_value: ing.conversionValue, stock_quantity: ing.stockQuantity, low_stock_threshold: ing.lowStockThreshold, user_id: DEFAULT_USER_ID }]);
+  };
+
+  const deleteIngredient = async (id: string) => {
+    setIngredients(prev => prev.filter(i => i.id !== id));
+    if (supabase) await supabase.from('ingredients').delete().eq('id', id);
+  };
+
+  const handleUpdateIngredient = async (i: Ingredient) => {
+    setIngredients(prev => prev.map(old => old.id === i.id ? i : old));
+    if (supabase) await supabase.from('ingredients').update({ name: i.name, category: i.category, purchase_price: i.purchasePrice, purchase_unit: i.purchase_unit, use_unit: i.use_unit, conversion_value: i.conversionValue, stock_quantity: i.stockQuantity, low_stock_threshold: i.lowStockThreshold }).eq('id', i.id);
+  };
+
+  const handleAddRecipe = async (r: Recipe) => {
+    if (supabase) {
+      try {
+        const recipeData = {
+          name: r.name,
+          category: r.category || 'Makanan',
+          selling_price: r.sellingPrice,
+          user_id: DEFAULT_USER_ID
+        };
+
+        // Dual sync: hpp_recipes AND katalog _menu_baru
+        const [res1, res2] = await Promise.all([
+          supabase.from('hpp_recipes').insert([recipeData]).select(),
+          supabase.from('katalog _menu_baru').insert([{ name: r.name, menu_kasir: r.category, price: r.sellingPrice, user_id: DEFAULT_USER_ID }])
+        ]);
+
+        if (res1.data?.[0]) {
+          const nr = { ...r, id: res1.data[0].id };
+          setRecipes(prev => [...prev, nr]);
+          return nr;
+        }
+      } catch (e) {}
+    }
+    setRecipes(prev => [...prev, r]);
+  };
+
+  const handleUpdateRecipe = async (r: Recipe) => {
+    setRecipes(prev => prev.map(old => old.id === r.id ? r : old));
+    if (supabase) {
+      const price = r.roundedSellingPrice || r.sellingPrice || 0;
+      await Promise.all([
+        supabase.from('hpp_recipes').update({ name: r.name, category: r.category, selling_price: r.sellingPrice, markup_percent: r.markupPercent, labor_cost: r.laborCost, overhead_cost: r.overhead_cost, shrinkage_percent: r.shrinkage_percent, rounded_selling_price: r.roundedSellingPrice }).eq('id', r.id),
+        supabase.from('katalog _menu_baru').update({ name: r.name, menu_kasir: r.category, price: price }).eq('name', r.name)
+      ]);
+      await supabase.from('recipe_items').delete().eq('recipe_id', r.id);
+      if (r.items.length > 0) await supabase.from('recipe_items').insert(r.items.map(it => ({ id: generateId(), recipe_id: r.id, ingredient_id: it.ingredientId, quantity_needed: it.quantityNeeded })));
     }
   };
 
-  // --- EMPLOYEES ---
-  const handleSaveEmployee = async (newEmployee: Partial<Employee>, editingEmployeeId: string | null) => {
-    if (!newEmployee.name) return;
-    
-    if (editingEmployeeId) {
-      setEmployees(prev => prev.map(emp => emp.id === editingEmployeeId ? { ...emp, ...newEmployee as Employee } : emp));
-      if (supabase) {
-        await supabase.from('employees').update({
-          name: newEmployee.name,
-          role: newEmployee.role,
-          salary: newEmployee.salary,
-          avatar_color: (newEmployee as any).avatarColor,
-          initials: (newEmployee as any).initials
-        }).eq('id', editingEmployeeId);
-      }
+  const handleDeleteRecipe = async (id: string) => {
+    const r = recipes.find(x => x.id === id);
+    setRecipes(prev => prev.filter(x => x.id !== id));
+    if (supabase) {
+      await Promise.all([
+        supabase.from('hpp_recipes').delete().eq('id', id),
+        r ? supabase.from('katalog _menu_baru').delete().eq('name', r.name) : Promise.resolve()
+      ]);
+    }
+  };
+
+  const handleProcessTransaction = async (t: Transaction) => {
+    const ft: Transaction = { ...t, date: new Date().toISOString() };
+    setTransactions(prev => [ft, ...prev]);
+    if (supabase) {
+      try {
+        const { data } = await supabase.from('riwayat_transaksi').insert([{ id: ft.id, total_amount: ft.totalPrice, payment_method: ft.paymentMethod || 'Tunai', user_id: DEFAULT_USER_ID }]).select();
+        if (data?.[0]) await supabase.from('order_items').insert(ft.items.map(it => ({ id: generateId(), order_id: data[0].id, recipe_id: it.recipeId, quantity: it.quantity, subtotal: it.price * it.quantity, user_id: DEFAULT_USER_ID })));
+        loadData();
+      } catch (e) {}
+    }
+    return ft;
+  };
+
+  const handleVoidTransaction = async (id: string) => {
+    setTransactions(prev => prev.filter(t => t.id !== id));
+    if (supabase) { await supabase.from('riwayat_transaksi').delete().eq('id', id); loadData(); }
+  };
+
+  const handleSaveEmployee = async (e: Partial<Employee>, eid: string | null) => {
+    if (!e.name) return;
+    if (eid) {
+      setEmployees(prev => prev.map(old => old.id === eid ? { ...old, ...e as Employee } : old));
+      if (supabase) await supabase.from('employees').update({ name: e.name, role: e.role, salary: e.salary, avatar_color: (e as any).avatarColor, initials: (e as any).initials }).eq('id', eid);
     } else {
-      const employee: Employee = { ...newEmployee as Employee, id: generateId() };
-      setEmployees(prev => [...prev, employee]);
-      if (supabase) {
-        await supabase.from('employees').insert([{
-          id: employee.id,
-          name: employee.name,
-          role: employee.role,
-          salary: employee.salary,
-          avatar_color: (employee as any).avatarColor,
-          initials: (employee as any).initials,
-          user_id: DEFAULT_USER_ID
-        }]);
-      }
+      const ne: Employee = { ...e as Employee, id: generateId() };
+      setEmployees(prev => [...prev, ne]);
+      if (supabase) await supabase.from('employees').insert([{ ...ne, user_id: DEFAULT_USER_ID }]);
     }
   };
 
   const deleteEmployee = async (id: string) => {
-    setEmployees(prev => prev.filter(emp => emp.id !== id));
-    if (supabase) {
-      try {
-        const { error } = await supabase.from('employees').delete().eq('id', id);
-        if (error) throw error;
-      } catch (e) {
-        console.error("Error deleting employee from Supabase:", e);
-      }
-    }
+    setEmployees(prev => prev.filter(e => e.id !== id));
+    if (supabase) await supabase.from('employees').delete().eq('id', id);
   };
 
-  // --- EXPENSES ---
-  const handleAddExpense = async (expenseData: Partial<Expense>) => {
-    if (!expenseData.description || !expenseData.amount) return;
-    const expense: Expense = {
-      id: generateId(), date: new Date().toISOString(),
-      description: expenseData.description, amount: Number(expenseData.amount),
-      category: expenseData.category as any
-    };
-    setExpenses(prev => [expense, ...prev]);
-    if (supabase) {
-      await supabase.from('catatan pengeluaran harian').insert([{
-        id: expense.id, date: expense.date, description: expense.description,
-        amount: expense.amount, category: expense.category, user_id: DEFAULT_USER_ID
-      }]);
-    }
+  const handleAddExpense = async (e: Partial<Expense>) => {
+    if (!e.description || !e.amount) return;
+    const ex: Expense = { id: generateId(), date: new Date().toISOString(), description: e.description, amount: Number(e.amount), category: e.category as any };
+    setExpenses(prev => [ex, ...prev]);
+    if (supabase) await supabase.from('catatan pengeluaran harian').insert([{ id: ex.id, date: ex.date, description: ex.description, amount: ex.amount, category: ex.category, user_id: DEFAULT_USER_ID }]);
   };
 
   const handleDeleteExpense = async (id: string) => {
@@ -514,100 +267,48 @@ export function useAppState() {
     if (supabase) await supabase.from('catatan pengeluaran harian').delete().eq('id', id);
   };
 
-  // --- DAILY INCOMES ---
-  const handleUpdateDailyIncome = async (incomeData: Partial<Expense>) => {
-    if (!incomeData.description || !incomeData.amount) return;
-    const income: Expense = {
-      id: generateId(), date: new Date().toISOString(),
-      description: incomeData.description, amount: Number(incomeData.amount),
-      category: 'Pemasukan' as any
-    };
-    setDailyIncomes(prev => [income, ...prev]);
-    if (supabase) {
-      await supabase.from('pemasukan harian').insert([{
-        id: income.id, description: income.description,
-        amount: income.amount, timestamp: income.date, user_id: DEFAULT_USER_ID
-      }]);
-    }
+  const handleUpdateDailyIncome = async (i: Partial<Expense>) => {
+    if (!i.description || !i.amount) return;
+    const inc: Expense = { id: generateId(), date: new Date().toISOString(), description: i.description, amount: Number(i.amount), category: 'Pemasukan' as any };
+    setDailyIncomes(prev => [inc, ...prev]);
+    if (supabase) await supabase.from('pemasukan_harian').insert([{ id: inc.id, description: inc.description, amount: inc.amount, timestamp: inc.date, user_id: DEFAULT_USER_ID }]);
   };
 
   const handleDeleteDailyIncome = async (id: string) => {
-    setDailyIncomes(prev => prev.filter(i => i.id !== id));
-    if (supabase) await supabase.from('pemasukan harian').delete().eq('id', id);
+    setDailyIncomes(prev => prev.filter(inc => inc.id !== id));
+    if (supabase) await supabase.from('pemasukan_harian').delete().eq('id', id);
   };
 
-  // --- ATTENDANCE ---
-  const toggleAttendance = async (employeeId: string, date: string, status: Attendance['status']) => {
-    const existing = attendances.find(a => a.employeeId === employeeId && a.date === date);
-    
-    if (existing) {
-      if (existing.status === status) {
-        // Delete if same status (toggle off)
-        setAttendances(prev => prev.filter(a => a.id !== existing.id));
-        if (supabase) await supabase.from('attendances').delete().eq('id', existing.id);
+  const toggleAttendance = async (eid: string, d: string, s: Attendance['status']) => {
+    const ex = attendances.find(a => a.employeeId === eid && a.date === d);
+    if (ex) {
+      if (ex.status === s) {
+        setAttendances(prev => prev.filter(a => a.id !== ex.id));
+        if (supabase) await supabase.from('absensi').delete().eq('id', ex.id);
       } else {
-        // Update if different status
-        setAttendances(prev => prev.map(a => a.id === existing.id ? { ...a, status } : a));
-        if (supabase) await supabase.from('attendances').update({ status }).eq('id', existing.id);
+        setAttendances(prev => prev.map(a => a.id === ex.id ? { ...a, status: s } : a));
+        if (supabase) await supabase.from('absensi').update({ status: s }).eq('id', ex.id);
       }
     } else {
-      // Insert new
-      const newAtt: Attendance = { id: generateId(), employeeId, date, status };
-      setAttendances(prev => [...prev, newAtt]);
-      if (supabase) {
-        await supabase.from('attendances').insert([{
-          id: newAtt.id,
-          employee_id: employeeId,
-          date,
-          status,
-          user_id: DEFAULT_USER_ID
-        }]);
-      }
+      const na: Attendance = { id: generateId(), employeeId: eid, date: d, status: s };
+      setAttendances(prev => [...prev, na]);
+      if (supabase) await supabase.from('absensi').insert([{ id: na.id, employee_id: eid, date: d, status: s, user_id: DEFAULT_USER_ID }]);
     }
   };
 
-  const handleUpdateShift = async (employeeId: string, date: string, type: ShiftType) => {
-    setShifts(prev => ({
-      ...prev,
-      [employeeId]: {
-        ...(prev[employeeId] || {}),
-        [date]: type
-      }
-    }));
-
-    if (supabase) {
-      await supabase.from('shifts').upsert({
-        employee_id: employeeId,
-        date,
-        type,
-        user_id: DEFAULT_USER_ID
-      }, { onConflict: 'employee_id,date' });
-    }
+  const handleUpdateShift = async (eid: string, d: string, t: ShiftType) => {
+    setShifts(prev => ({ ...prev, [eid]: { ...(prev[eid] || {}), [d]: t } }));
+    if (supabase) await supabase.from('shifts').upsert({ employee_id: eid, date: d, type: t, user_id: DEFAULT_USER_ID }, { onConflict: 'employee_id,date' });
   };
 
-  // --- RESTAURANT ASSETS ---
-  const handleSaveAsset = async (asset: Partial<RestaurantAsset>, editingId: string | null) => {
-    if (editingId) {
-      setRestaurantAssets(prev => prev.map(a => a.id === editingId ? { ...a, ...asset as RestaurantAsset } : a));
-      if (supabase) {
-        await supabase.from('kedai_assets').update({
-          name: asset.name,
-          category: asset.category,
-          quantity: asset.quantity,
-          price: asset.price,
-          condition: asset.condition,
-          location: asset.location
-        }).eq('id', editingId);
-      }
+  const handleSaveAsset = async (a: Partial<RestaurantAsset>, eid: string | null) => {
+    if (eid) {
+      setRestaurantAssets(prev => prev.map(old => old.id === eid ? { ...old, ...a as RestaurantAsset } : old));
+      if (supabase) await supabase.from('kedai_assets').update({ name: a.name, category: a.category, quantity: a.quantity, price: a.price, condition: a.condition, location: a.location }).eq('id', eid);
     } else {
-      const newAsset = { ...asset as RestaurantAsset, id: generateId() };
-      setRestaurantAssets(prev => [...prev, newAsset]);
-      if (supabase) {
-        await supabase.from('kedai_assets').insert([{
-          ...newAsset,
-          user_id: DEFAULT_USER_ID
-        }]);
-      }
+      const na = { ...a as RestaurantAsset, id: generateId() };
+      setRestaurantAssets(prev => [...prev, na]);
+      if (supabase) await supabase.from('kedai_assets').insert([{ ...na, user_id: DEFAULT_USER_ID }]);
     }
   };
 
@@ -616,57 +317,39 @@ export function useAppState() {
     if (supabase) await supabase.from('kedai_assets').delete().eq('id', id);
   };
 
-  const handleAddMaintenance = async (log: any, asset: RestaurantAsset) => {
+  const handleAddMaintenance = async (l: any, a: RestaurantAsset) => {
     if (supabase) {
-      const { error } = await supabase.from('kedai_maintenance_logs').insert([log]);
+      const { error } = await supabase.from('kedai_maintenance_logs').insert([l]);
       if (!error) {
-        setMaintenanceLogs(prev => [log, ...prev]);
-        if (asset.condition === 'Servis') {
-          await handleSaveAsset({ condition: 'Bagus' }, asset.id);
-        }
+        setMaintenanceLogs(prev => [l, ...prev]);
+        if (a.condition === 'Servis') await handleSaveAsset({ condition: 'Bagus' }, a.id);
       }
     }
   };
 
   const handleBackup = () => {
-    const data = { ingredients, recipes, employees, transactions, expenses, pettyCash, shifts: {}, weeklyPattern: {}, attendances };
-    const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `posgo_backup_${new Date().toISOString()}.json`;
-    a.click();
+    const d = { ingredients, recipes, employees, transactions, expenses, pettyCash, shifts: {}, weeklyPattern: {}, attendances };
+    const b = new Blob([JSON.stringify(d)], {type: 'application/json'});
+    const u = URL.createObjectURL(b);
+    const a = document.createElement('a'); a.href = u; a.download = `posgo_backup_${new Date().toISOString()}.json`; a.click();
   };
 
-  const handleRestore = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
+  const handleRestore = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    const f = ev.target.files?.[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = (e) => {
       try {
-        const data = JSON.parse(e.target?.result as string);
-        setIngredients(data.ingredients || []);
-        setRecipes(data.recipes || []);
-        setEmployees(data.employees || []);
-        setTransactions(data.transactions || []);
-        alert("Data berhasil dipulihkan!");
-      } catch (err) {
-        alert("Gagal memulihkan data. Pastikan file backup valid.");
-      }
+        const d = JSON.parse(e.target?.result as string);
+        setIngredients(d.ingredients || []); setRecipes(d.recipes || []); setEmployees(d.employees || []); setTransactions(d.transactions || []); alert("Data berhasil dipulihkan!");
+      } catch (err) { alert("Gagal memulihkan data. Pastikan file backup valid."); }
     };
-    reader.readAsText(file);
+    r.readAsText(f);
   };
 
   return {
-    ingredients, setIngredients, recipes, setRecipes, employees, setEmployees,
-    transactions, setTransactions, expenses, setExpenses, pettyCash, setPettyCash,
-    isLoaded, deleteIngredient, deleteEmployee, handleBackup, handleRestore,
-    handleAddIngredient, handleUpdateIngredient, handleAddExpense, handleDeleteExpense, handleSaveEmployee, handleProcessTransaction,
-    handleAddRecipe, handleUpdateRecipe, handleDeleteRecipe, handleUpdateDailyIncome, handleDeleteDailyIncome, handleVoidTransaction,
-    shifts, setShifts, handleUpdateShift, weeklyPattern, setWeeklyPattern, attendances, setAttendances,
-    toggleAttendance, theme, toggleTheme, isSyncing, dailyIncomes, restaurantAssets, setRestaurantAssets,
-    maintenanceLogs, handleSaveAsset, handleDeleteAsset, handleAddMaintenance,
-    isModalOpen, setIsModalOpen
+    ingredients, setIngredients, recipes, setRecipes, employees, setEmployees, transactions, setTransactions, expenses, setExpenses, pettyCash, setPettyCash,
+    isLoaded, loadData, deleteIngredient, deleteEmployee, handleBackup, handleRestore, handleAddIngredient, handleUpdateIngredient, handleAddExpense, handleDeleteExpense, handleSaveEmployee, handleProcessTransaction,
+    handleAddRecipe, handleUpdateRecipe, handleDeleteRecipe, handleUpdateDailyIncome, handleDeleteDailyIncome, handleVoidTransaction, shifts, setShifts, handleUpdateShift, weeklyPattern, setWeeklyPattern, attendances, setAttendances,
+    toggleAttendance, theme, toggleTheme, isSyncing, dailyIncomes, restaurantAssets, setRestaurantAssets, maintenanceLogs, handleSaveAsset, handleDeleteAsset, handleAddMaintenance, isModalOpen, setIsModalOpen
   };
 }
-

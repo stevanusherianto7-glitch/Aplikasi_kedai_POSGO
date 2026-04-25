@@ -234,7 +234,7 @@ export default function RestaurantAssetsPage({
               </button>
               <button
                 onClick={handleExportPDF}
-                className="h-12 bg-slate-800 text-white rounded-xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-700 transition-all active:scale-95"
+                className="h-12 bg-purple-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-purple-700 transition-all active:scale-95 shadow-lg shadow-purple-500/20"
               >
                 <FileDown size={14} /> EXPORT PDF
               </button>
@@ -251,10 +251,10 @@ export default function RestaurantAssetsPage({
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1 h-14 rounded-xl text-[7px] font-black uppercase tracking-widest transition-all border",
+                    "flex flex-col items-center justify-center gap-1 h-14 rounded-xl text-[7px] font-black uppercase tracking-widest transition-all border-2",
                     activeSubTab === tab.id
-                      ? "bg-blue-600/10 text-blue-500 border-blue-500/50 shadow-inner"
-                      : "bg-transparent text-slate-500 border-slate-100 dark:border-white/5"
+                      ? "bg-blue-600/10 text-blue-600 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
+                      : "bg-white text-slate-500 border-slate-300 dark:bg-white/5 dark:border-white/20 shadow-sm"
                   )}
                 >
                   <tab.icon size={14} />
@@ -328,9 +328,9 @@ export default function RestaurantAssetsPage({
                          <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Kuantitas</span>
                          <span className="text-sm font-black text-slate-700">{asset.quantity} Item</span>
                        </div>
-                       <div className="flex flex-col">
-                         <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Harga / Unit</span>
-                         <span className="text-sm font-black text-blue-600">{formatIDR(asset.price)}</span>
+                       <div className="flex flex-col items-end">
+                         <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest text-right">Harga / Unit</span>
+                         <span className="text-sm font-black text-blue-600 text-right">{formatIDR(asset.price)}</span>
                        </div>
                     </div>
 
@@ -376,55 +376,55 @@ export default function RestaurantAssetsPage({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="space-y-6"
+              className="space-y-4"
             >
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                 <div className="bg-slate-900 text-white p-8 rounded-[2.5rem] space-y-4 shadow-2xl relative overflow-hidden">
-                   <DollarSign className="absolute -right-4 -bottom-4 w-32 h-32 text-white/5 rotate-12" />
-                   <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">Investasi Aset</p>
-                   <h2 className="text-2xl font-black">{formatIDR(stats.totalValue)}</h2>
-                   <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                 <div className="bg-slate-900 text-white p-5 rounded-[2rem] space-y-2 shadow-xl relative overflow-hidden">
+                   <DollarSign className="absolute -right-2 -bottom-2 w-20 h-20 text-white/5 rotate-12" />
+                   <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-white/50">Investasi Aset</p>
+                   <h2 className="text-sm font-black truncate">{formatIDR(stats.totalValue)}</h2>
+                   <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
                      <div className="h-full bg-blue-500 w-3/4" />
                    </div>
                  </div>
 
-                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 space-y-4 shadow-sm">
-                   <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">Aset Bermasalah</p>
-                   <div className="flex items-center gap-4">
-                     <h2 className="text-3xl font-black text-rose-600">{stats.brokenCount}</h2>
-                     <div className="px-3 py-1 bg-rose-50 text-rose-600 rounded-full text-[8px] font-black uppercase">Need Repair</div>
+                 <div className="bg-white p-5 rounded-[2rem] border border-slate-100 space-y-2 shadow-sm">
+                   <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-slate-400">Bermasalah</p>
+                   <div className="flex items-center justify-between">
+                     <h2 className="text-xl font-black text-rose-600">{stats.brokenCount}</h2>
+                     <div className="px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded-md text-[6px] font-black uppercase">Need Repair</div>
                    </div>
-                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none">SEGERA TINDAK LANJUTI</p>
                  </div>
 
-                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 space-y-4 shadow-sm">
-                   <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">Total Biaya Pemeliharaan</p>
-                   <h2 className="text-2xl font-black text-amber-600">{formatIDR(stats.maintenanceCost)}</h2>
-                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none">TOTAL COST LIFE-CYCLE</p>
+                 <div className="bg-white p-5 rounded-[2rem] border border-slate-100 space-y-2 shadow-sm">
+                   <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-slate-400">Total Servis</p>
+                   <h2 className="text-sm font-black text-amber-600 truncate">{formatIDR(stats.maintenanceCost)}</h2>
                  </div>
 
-                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 space-y-4 shadow-sm">
-                   <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">Kesehatan Aset</p>
-                   <h2 className="text-3xl font-black text-emerald-600">
-                     {Math.round(((assets.length - stats.brokenCount) / (assets.length || 1)) * 100)}%
-                   </h2>
-                   <div className="flex gap-1">
-                     {[1,2,3,4,5].map(i => <div key={i} className={cn("h-1 flex-1 rounded-full", i <= 4 ? "bg-emerald-500" : "bg-slate-100")} />)}
+                 <div className="bg-white p-5 rounded-[2rem] border border-slate-100 space-y-2 shadow-sm">
+                   <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-slate-400">Kesehatan</p>
+                   <div className="flex items-center justify-between">
+                     <h2 className="text-xl font-black text-emerald-600">
+                       {Math.round(((assets.length - stats.brokenCount) / (assets.length || 1)) * 100)}%
+                     </h2>
+                     <div className="flex gap-0.5">
+                       {[1,2,3].map(i => <div key={i} className={cn("h-1 w-2 rounded-full", i <= 2 ? "bg-emerald-500" : "bg-slate-100")} />)}
+                     </div>
                    </div>
                  </div>
                </div>
 
                {/* Category Distribution */}
-               <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm">
-                 <h3 className="font-black text-base text-slate-800 uppercase tracking-tight mb-8">Distribusi Aset Per Kategori</h3>
-                 <div className="space-y-6">
+               <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                 <h3 className="font-black text-xs text-slate-800 uppercase tracking-tight mb-4">Distribusi Kategori</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                    {Object.entries(stats.categoryDistribution).map(([cat, count]: any) => (
-                     <div key={cat} className="space-y-2">
-                        <div className="flex justify-between items-end text-[10px] font-black uppercase tracking-widest">
+                     <div key={cat} className="space-y-1">
+                        <div className="flex justify-between items-end text-[8px] font-black uppercase tracking-widest">
                           <span className="text-slate-500">{cat}</span>
                           <span className="text-blue-600">{count} Item</span>
                         </div>
-                        <div className="h-3 w-full bg-slate-50 rounded-full overflow-hidden">
+                        <div className="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${(count / assets.length) * 100}%` }}

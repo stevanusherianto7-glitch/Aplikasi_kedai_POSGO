@@ -1,13 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Hard-coded credentials to ensure absolute connection reliability in APK build
+const supabaseUrl = 'https://mrrfmrzhumcmhmqjceul.supabase.co';
+const supabaseAnonKey = 'sb_publishable__YgmAFLxNl1Tr5XmeKikXA_Q1SnPa1f';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase credentials are missing! Check your .env file.');
-}
-
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
-);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
