@@ -72,7 +72,7 @@ export const HistoryManager: React.FC<HistoryManagerProps> = ({
                     <ShoppingCart className="w-3.5 h-3.5 text-primary" />
                   </div>
                   <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-tight">
-                    #{t.id.slice(0, 8).toUpperCase()}
+                    #{t.orderNumber || t.id.slice(0, 8).toUpperCase()}
                   </h3>
                 </div>
                 <Badge className={cn(

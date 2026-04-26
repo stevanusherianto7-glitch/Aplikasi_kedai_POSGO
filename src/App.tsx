@@ -237,8 +237,8 @@ function AppContent() {
       onTabChange={handleTabChange}
       theme={state.theme}
       toggleTheme={state.toggleTheme}
-      isModalOpen={isModalOpen}
-      hideNavbar={isHppDetailOpen}
+      isModalOpen={false}
+      hideNavbar={false}
     >
       <div className={cn(
         "mx-auto transition-all duration-500 w-full p-0 max-w-none"

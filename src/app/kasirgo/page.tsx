@@ -626,26 +626,18 @@ function KasirGoContent({
                       </div>
                       <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto no-scrollbar">
                         {(filteredTransactions || []).filter(t => formatTransactionNumber(t.timestamp || t.date, t.orderNumber).includes(searchHistory)).map((t, index) => (
-                          <div key={t.id} className="p-4 hover:bg-slate-50 transition-colors flex items-center group relative">
-                            <div className="flex-1 flex items-start justify-between">
-                              <div className="space-y-0.5 shrink-0">
+                          <div key={t.id} className="p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 group relative">
+                            <div className="flex items-center justify-between">
+                              <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-2">
-                                   <span className="text-[9px] font-black bg-slate-800 text-white px-2 py-0.5 rounded tracking-tighter">ORDER #{String(index + 1).padStart(3, '0')}</span>
-                                   <p className="font-bold text-slate-400 text-[10px]">#{formatTransactionNumber(t.timestamp || t.date, t.orderNumber)}</p>
+                                   <span className="text-[9px] font-black bg-slate-800 text-white px-2 py-0.5 rounded tracking-tighter shrink-0">ORDER #{String(index + 1).padStart(3, '0')}</span>
+                                   <p className="font-bold text-slate-400 text-[10px] truncate">#{t.transaction_code || formatTransactionNumber(t.timestamp || t.date, t.orderNumber)}</p>
                                 </div>
                                 <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tight">{formatDate(t.timestamp || t.date)} • {t.paymentMethod || 'Tunai'}</p>
-
-                                <div className="flex flex-wrap gap-1 mt-1.5">
-                                  {(t.items || []).map((item: any, idx: number) => (
-                                    <span key={idx} className="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-medium border border-slate-200/50">
-                                      {item.name} x{item.quantity}
-                                    </span>
-                                  ))}
-                                </div>
                               </div>
 
-                              <div className="flex flex-col items-end self-center pl-4 ml-auto">
-                                <span className="font-black text-emerald-600 text-sm whitespace-nowrap text-right pr-2">
+                              <div className="flex flex-col items-end shrink-0">
+                                <span className="font-black text-emerald-600 text-sm whitespace-nowrap">
                                   {formatIDR(t.totalPrice || t.total || 0)}
                                 </span>
                               </div>
@@ -653,7 +645,7 @@ function KasirGoContent({
 
                             <button
                               onClick={(e) => { e.stopPropagation(); handleVoidTransaction(t.id); }}
-                              className="ml-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 p-2 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 shrink-0"
+                              className="absolute top-4 right-4 translate-x-12 group-hover:translate-x-0 text-slate-300 hover:text-rose-500 transition-all shrink-0"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -939,7 +931,7 @@ function KasirGoContent({
               <span className="receipt-label">Jam:</span>
               <span className="receipt-value">{new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
-            <div className="receipt-row">
+            <div className="receipt-row font-bold">
               <span className="receipt-label">No. Bill:</span>
               <span className="receipt-value">{formatTransactionNumber(new Date(), currentOrderNumber || 0)}</span>
             </div>
@@ -959,7 +951,7 @@ function KasirGoContent({
             {cart.map((item, idx) => (
               <div key={idx} className="receipt-item-row">
                 <div className="receipt-item-content">
-                  <span className="receipt-col-menu">{item.name}</span>
+                  <span className="receipt-col-menu font-bold">{item.name}</span>
                   <span className="receipt-col-qty">{item.quantity}</span>
                   <span className="receipt-col-price">{formatNumber(item.price)}</span>
                   <span className="receipt-col-total">{formatNumber(item.price * item.quantity)}</span>
@@ -976,7 +968,7 @@ function KasirGoContent({
             </div>
             <div className="receipt-row">
               <span>Metode Bayar</span>
-              <span>{paymentMethod}</span>
+              <span className="font-bold">{paymentMethod}</span>
             </div>
             <div className="receipt-row">
               <span>Bayar</span>

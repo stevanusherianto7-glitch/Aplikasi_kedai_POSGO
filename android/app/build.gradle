@@ -40,7 +40,8 @@ android {
     }
     applicationVariants.all { variant ->
         variant.outputs.all {
-            outputFileName = "POSGO_v${variant.versionName}_${variant.buildType.name}.apk"
+            def date = new Date().format('yyyyMMdd')
+            outputFileName = "POSGO_57_v${variant.versionName}_${date}_${variant.buildType.name}.apk"
         }
     }
 }

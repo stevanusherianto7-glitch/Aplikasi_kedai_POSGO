@@ -108,7 +108,7 @@ export function useAppState() {
            totalHpp: 0,
            paymentMethod: t.payment_method || 'Tunai',
            timestamp: new Date(t.created_at || Date.now()),
-           orderNumber: t.order_number,
+           orderNumber: t.transaction_code || t.order_number, // Prioritas kolom baru
            sequenceNumber: 1,
            items: Array.isArray(t.items) ? t.items : []
         })));
@@ -295,21 +295,30 @@ export function useAppState() {
     setTransactions(prev => [ft, ...prev]);
     if (supabase) {
       try {
-        const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
         const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-        const orderNum = `${dateStr}${randomNum}`;
+        const codeText = `${dateStr}${randomNum}`;
 
-        await supabase.from('nomor_transactions_bill').insert([{
+        // PERBAIKAN RADIKAL: HANYA KIRIM 5 KOLOM YANG AMAN
+        const payload = {
            id: ft.id,
-           order_number: orderNum,
+           transaction_code: codeText, // TEXT (Aman)
            total: ft.totalPrice,
            payment_method: ft.paymentMethod || 'Tunai',
-           items: ft.items,
-           user_id: DEFAULT_USER_ID
-        }]);
-        loadData();
+           items: ft.items
+        };
+
+        const { error } = await supabase.from('nomor_transactions_bill').insert([payload]);
+
+        if (error) {
+          console.error("[SUPABASE] Final Insert Error:", error.message);
+          alert("Gagal simpan ke cloud: " + error.message);
+        } else {
+          loadData();
+        }
       } catch (e) {
-        console.error("[SUPABASE] Transaction Insert Error:", e);
+        console.error("[SUPABASE] Critical Transaction Error:", e);
       }
     }
     return ft;

@@ -177,7 +177,7 @@ export default function PatternManager({
             Berlaku Mulai Tanggal
           </label>
           <Input
-            placeholder="Contoh: 1 November 2023"
+            type="date"
             value={effectiveDate}
             onChange={(e) => setEffectiveDate(e.target.value)}
             className="h-12 bg-white border-slate-200 rounded-xl text-[11px] font-bold text-slate-900"
