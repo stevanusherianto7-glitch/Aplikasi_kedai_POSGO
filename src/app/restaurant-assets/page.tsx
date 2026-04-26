@@ -206,9 +206,9 @@ export default function RestaurantAssetsPage({
   if (!isLoaded) return <div className="p-20 text-center text-slate-400">Loading Assets...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-emerald-50 pb-32 transition-colors duration-500 no-scrollbar">
-      {/* 1. STICKY HEADER - RESTORED PRO GRID */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-6 pt-10 pb-6 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm rounded-b-[3.5rem] no-scrollbar">
+    <div className="min-h-screen bg-transparent pb-32 transition-colors duration-500 no-scrollbar">
+      {/* 1. STICKY HEADER - CLEAN TRANSPARENT */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 pt-10 pb-6 bg-transparent backdrop-blur-xl border-b border-blue-100/20 shadow-sm rounded-b-[3.5rem] no-scrollbar">
         <div className="flex flex-col gap-6 max-w-5xl mx-auto">
           {/* Row 0: Standalone Title */}
           <div className="flex items-center gap-3">
@@ -252,8 +252,8 @@ export default function RestaurantAssetsPage({
                   className={cn(
                     "flex flex-col items-center justify-center gap-1 h-14 rounded-xl text-[7px] font-black uppercase tracking-widest transition-all border-2",
                     activeSubTab === tab.id
-                      ? "bg-blue-600/10 text-blue-600 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
-                      : "bg-white text-slate-500 border-slate-300 shadow-sm"
+                      ? "bg-blue-600/20 text-blue-600 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
+                      : "bg-white/40 text-slate-500 border-blue-100/30 shadow-sm"
                   )}
                 >
                   <tab.icon size={14} />
@@ -292,7 +292,7 @@ export default function RestaurantAssetsPage({
                   <select
                     value={filterCategory}
                     onChange={e => setFilterCategory(e.target.value)}
-                    className="w-full h-11 pl-3 pr-8 rounded-xl bg-white border border-slate-100 shadow-sm text-[9px] font-black uppercase tracking-tight outline-none appearance-none cursor-pointer"
+                    className="w-full h-11 pl-3 pr-8 rounded-xl bg-white/60 border border-blue-100/30 shadow-sm text-[9px] font-black uppercase tracking-tight outline-none appearance-none cursor-pointer"
                   >
                     <option value="Semua">SEMUA</option>
                     {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -301,19 +301,18 @@ export default function RestaurantAssetsPage({
                 </div>
               </div>
 
-              {/* Asset Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pb-20">
+              {/* Asset Grid (COMPACT REDESIGN) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 pb-20">
                 {filteredAssets.map(asset => (
-                  <div key={asset.id} className="bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group overflow-hidden">
-                    <div className="p-5 space-y-4">
+                  <div key={asset.id} className="bg-white/60 backdrop-blur-sm rounded-3xl border border-blue-100/20 shadow-sm hover:shadow-md transition-all group overflow-hidden">
+                    <div className="p-3 space-y-2">
                       <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                          <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black rounded-full uppercase tracking-tighter">{asset.category}</span>
-                          <h3 className="text-sm font-black text-slate-800 uppercase line-clamp-1">{asset.name}</h3>
-                          <p className="text-[9px] text-slate-400 font-bold flex items-center gap-1 uppercase tracking-tight"><MapPin size={10}/> {asset.location}</p>
+                        <div className="space-y-0.5">
+                          <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-[7px] font-black rounded-full uppercase tracking-tighter">{asset.category}</span>
+                          <h3 className="text-xs font-black text-slate-800 uppercase line-clamp-1">{asset.name}</h3>
                         </div>
                         <div className={cn(
-                          "px-2.5 py-1 rounded-full text-[8px] font-black uppercase",
+                          "px-1.5 py-0.5 rounded-full text-[7px] font-black uppercase",
                           asset.condition === 'Bagus' ? "bg-emerald-50 text-emerald-600" :
                           asset.condition === 'Rusak' ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-600"
                         )}>
@@ -321,42 +320,42 @@ export default function RestaurantAssetsPage({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50">
-                         <div className="flex flex-col">
-                           <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Qty</span>
-                           <span className="text-xs font-black text-slate-700">{asset.quantity} Item</span>
+                      <div className="flex justify-between items-center py-1.5 border-y border-slate-100/50">
+                         <div className="flex items-center gap-1.5">
+                           <span className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">QTY:</span>
+                           <span className="text-[10px] font-black text-slate-700">{asset.quantity}</span>
                          </div>
-                         <div className="flex flex-col items-end">
-                           <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest text-right">Price</span>
-                           <span className="text-xs font-black text-blue-600 text-right">{formatIDR(asset.price)}</span>
+                         <div className="flex items-center gap-1.5">
+                           <span className="text-[7px] font-bold text-slate-400 uppercase tracking-widest text-right">PRICE:</span>
+                           <span className="text-[10px] font-black text-blue-600 text-right">{formatIDR(asset.price)}</span>
                          </div>
                       </div>
 
-                      <div className="flex gap-2 pt-1">
+                      <div className="flex gap-1.5 pt-0.5">
                         <button
                           onClick={() => {
                             setEditingAsset(asset);
                             setNewAsset(asset);
                             setIsAddingAsset(true);
                           }}
-                          className="flex-1 h-9 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center gap-1.5 text-[9px] font-black uppercase hover:bg-blue-50 hover:text-blue-600 transition-all border border-slate-100/50"
+                          className="flex-1 h-7 rounded-lg bg-slate-50 text-slate-500 flex items-center justify-center gap-1 text-[8px] font-black uppercase hover:bg-blue-50 hover:text-blue-600 transition-all"
                         >
-                          <Pencil size={12} /> Edit
+                          <Pencil size={10} /> EDIT
                         </button>
                         <button
                           onClick={() => {
                             setSelectedAssetForMaintenance(asset);
                             setIsMaintenanceModalOpen(true);
                           }}
-                          className="flex-1 h-9 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center gap-1.5 text-[9px] font-black uppercase hover:bg-amber-50 hover:text-amber-600 transition-all border border-slate-100/50"
+                          className="flex-1 h-7 rounded-lg bg-slate-50 text-slate-500 flex items-center justify-center gap-1 text-[8px] font-black uppercase hover:bg-amber-50 hover:text-amber-600 transition-all"
                         >
-                          <Activity size={12} /> Servis
+                          <Activity size={10} /> SERVIS
                         </button>
                         <button
                           onClick={() => handleDeleteAsset(asset.id)}
-                          className="w-9 h-9 rounded-xl bg-rose-50 text-rose-400 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all border border-rose-100/50"
+                          className="w-7 h-7 rounded-lg bg-rose-50 text-rose-400 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={12} />
                         </button>
                       </div>
                     </div>
@@ -526,9 +525,9 @@ export default function RestaurantAssetsPage({
                   </select>
                 </div>
 
-                {/* BARIS 2: JUMLAH & HARGA */}
+                {/* BARIS 2: QTY & PRICE */}
                 <div className="space-y-1">
-                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Jumlah</label>
+                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">QTY</label>
                   <input
                     placeholder="0"
                     type="number"
@@ -539,7 +538,7 @@ export default function RestaurantAssetsPage({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Harga Satuan</label>
+                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">PRICE (SATUAN)</label>
                   <div className="relative">
                     <input
                       placeholder="0"

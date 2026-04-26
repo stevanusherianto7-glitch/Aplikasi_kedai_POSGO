@@ -34,7 +34,6 @@ export function useAppState() {
     try {
       setIsSyncing(true);
       if (supabase) {
-        // WORLD-CLASS DEFENSIVE FETCHING
         const fetchTable = async (table: string) => {
            const { data, error } = await supabase.from(table).select('*');
            if (error) { console.warn(`[SUPABASE] Error ${table}:`, error.message); return []; }
@@ -46,13 +45,13 @@ export function useAppState() {
           fetchTable('hpp_recipes'),
           fetchTable('recipe_items'),
           fetchTable('employees'),
-          fetchTable('transactions'),
+          fetchTable('nomor_transactions_bill'), // Sesuai screenshot
           fetchTable('expenses'),
-          fetchTable('assets'),
+          fetchTable('kedai_assets'),
           fetchTable('maintenance_logs'),
           fetchTable('absensi'),
           fetchTable('app_config'),
-          fetchTable('incomes'),
+          fetchTable('daily_incomes'), // Sesuai screenshot
           fetchTable('shifts')
         ]);
 
@@ -64,38 +63,79 @@ export function useAppState() {
         }
 
         setIngredients((ingD || []).map((i: any) => ({
-          id: i.id, name: i.name || 'Unnamed', category: i.category || 'General', purchasePrice: Number(i.purchase_price || 0),
-          purchaseUnit: i.purchase_unit || 'kg', useUnit: (i.use_unit as Unit) || 'gr', conversionValue: Number(i.conversion_value || 1),
-          stockQuantity: Number(i.stock_quantity || 0), lowStockThreshold: Number(i.low_stock_threshold || 0)
+          id: i.id,
+          name: i.name || 'Unnamed',
+          category: i.category || 'General',
+          purchasePrice: Number(i.purchase_price || 0),
+          purchaseUnit: i.purchase_unit || 'kg',
+          useUnit: (i.use_unit as Unit) || 'gr',
+          conversionValue: Number(i.conversion_value || 1),
+          stockQuantity: Number(i.stock_quantity || 0),
+          lowStockThreshold: Number(i.low_stock_threshold || 0)
         })));
 
         setRecipes((recD || []).map((r: any) => ({
-          id: r.id, name: r.name || 'Unnamed Recipe', category: r.category || 'Makanan',
+          id: r.id,
+          name: r.name || 'Unnamed Recipe',
+          category: r.category || 'Makanan',
           sellingPrice: Number(r.selling_price || 0),
-          markupPercent: Number(r.markup_percent || 0), laborCost: Number(r.labor_cost || 0), overheadCost: Number(r.overhead_cost || 0),
-          shrinkagePercent: Number(r.shrinkage_percent || 0), roundedSellingPrice: r.rounded_selling_price ? Number(r.rounded_selling_price) : undefined,
-          items: (recItemsD || []).filter((ri: any) => ri.recipe_id === r.id).map((ri: any) => ({ id: ri.id, ingredientId: ri.ingredient_id, quantityNeeded: Number(ri.quantity_needed || 0) })),
+          markupPercent: Number(r.markup_percent || 0),
+          laborCost: Number(r.labor_cost || 0),
+          overheadCost: Number(r.overhead_cost || 0),
+          shrinkagePercent: Number(r.shrinkage_percent || 0),
+          roundedSellingPrice: r.rounded_selling_price ? Number(r.rounded_selling_price) : undefined,
+          items: (recItemsD || []).filter((ri: any) => ri.recipe_id === r.id).map((ri: any) => ({
+            id: ri.id,
+            ingredientId: ri.ingredient_id,
+            quantityNeeded: Number(ri.quantity_needed || 0)
+          })),
           overheadBreakdown: r.overhead_breakdown || {}
         })));
 
-        setEmployees((empD || []).map((e: any) => ({ id: e.id, name: e.name, role: e.role, salary: Number(e.salary || 0), avatarColor: e.avatar_color, initials: e.initials })));
+        setEmployees((empD || []).map((e: any) => ({
+          id: e.id,
+          name: e.name,
+          role: e.role,
+          salary: Number(e.salary || 0),
+          avatarColor: e.avatar_color,
+          initials: e.initials
+        })));
 
         setTransactions((txD || []).map((t: any) => ({
            id: t.id,
-           date: t.timestamp,
-           totalPrice: Number(t.total_price || 0),
+           date: t.created_at,
+           totalPrice: Number(t.total || 0),
            totalHpp: 0,
            paymentMethod: t.payment_method || 'Tunai',
-           timestamp: new Date(t.timestamp || Date.now()),
+           timestamp: new Date(t.created_at || Date.now()),
            orderNumber: t.order_number,
-           sequenceNumber: t.sequence_number || 1,
+           sequenceNumber: 1,
            items: Array.isArray(t.items) ? t.items : []
         })));
 
-        setExpenses((expD || []).map((e: any) => ({ id: e.id, date: e.date, description: e.description, amount: Number(e.amount || 0), category: e.category })));
-        setRestaurantAssets((assetD || []).map((a: any) => ({ id: a.id, name: a.name, category: a.category, quantity: Number(a.quantity || 0), price: Number(a.price || 0) })));
+        setExpenses((expD || []).map((e: any) => ({
+          id: e.id,
+          date: e.date || e.created_at,
+          description: e.description,
+          amount: Number(e.amount || 0),
+          category: e.category
+        })));
+
+        setRestaurantAssets((assetD || []).map((a: any) => ({
+          id: String(a.id),
+          name: a.name || 'Unnamed',
+          category: a.category || 'Umum',
+          quantity: Number(a.quantity || 0),
+          price: Number(a.price || 0)
+        })));
+
         setMaintenanceLogs(logsD || []);
-        setAttendances((attD || []).map((a: any) => ({ id: a.id, employeeId: a.employee_id, date: a.date, status: a.status as any })));
+        setAttendances((attD || []).map((a: any) => ({
+          id: a.id,
+          employeeId: a.employee_id,
+          date: a.date,
+          status: a.status as any
+        })));
 
         const ms: Record<string, Record<string, ShiftType>> = {};
         if (Array.isArray(shiftD)) {
@@ -103,7 +143,13 @@ export function useAppState() {
         }
         setShifts(ms);
 
-        setDailyIncomes((incD || []).map((i: any) => ({ id: i.id, date: i.date, description: i.description, amount: Number(i.amount || 0), category: i.category as any })));
+        setDailyIncomes((incD || []).map((i: any) => ({
+          id: i.id,
+          date: i.income_date || i.created_at,
+          description: i.description,
+          amount: Number(i.amount || 0),
+          category: 'Pemasukan' as any
+        })));
       }
     } catch (e) { console.error("System Exception during State Load:", e); }
     finally { setIsLoaded(true); setIsSyncing(false); }
@@ -112,7 +158,7 @@ export function useAppState() {
   React.useEffect(() => {
     loadData();
     if (supabase) {
-      const c1 = supabase.channel('assets-real').on('postgres_changes', { event: '*', schema: 'public', table: 'assets' }, () => loadData()).subscribe();
+      const c1 = supabase.channel('assets-real').on('postgres_changes', { event: '*', schema: 'public', table: 'kedai_assets' }, () => loadData()).subscribe();
       const c2 = supabase.channel('absensi-real').on('postgres_changes', { event: '*', schema: 'public', table: 'absensi' }, () => loadData()).subscribe();
       const c3 = supabase.channel('recipe-real').on('postgres_changes', { event: '*', schema: 'public', table: 'hpp_recipes' }, () => loadData()).subscribe();
       return () => { supabase.removeChannel(c1); supabase.removeChannel(c2); supabase.removeChannel(c3); };
@@ -130,7 +176,18 @@ export function useAppState() {
     const ing: Ingredient = { ...i as Ingredient, name: i.name.trim(), id: generateId() };
     setIngredients(prev => [...prev, ing]);
     if (cb) cb(false);
-    if (supabase) await supabase.from('ingredients').insert([{ ...ing, purchase_price: ing.purchasePrice, purchase_unit: ing.purchaseUnit, use_unit: ing.useUnit, conversion_value: ing.conversionValue, stock_quantity: ing.stockQuantity, low_stock_threshold: ing.lowStockThreshold, user_id: DEFAULT_USER_ID }]);
+    if (supabase) await supabase.from('ingredients').insert([{
+      id: ing.id,
+      name: ing.name,
+      category: ing.category,
+      purchase_price: ing.purchasePrice,
+      purchase_unit: ing.purchaseUnit,
+      use_unit: ing.useUnit,
+      conversion_value: ing.conversionValue,
+      stock_quantity: ing.stockQuantity,
+      low_stock_threshold: ing.lowStockThreshold,
+      user_id: DEFAULT_USER_ID
+    }]);
   };
 
   const deleteIngredient = async (id: string) => {
@@ -140,22 +197,44 @@ export function useAppState() {
 
   const handleUpdateIngredient = async (i: Ingredient) => {
     setIngredients(prev => prev.map(old => old.id === i.id ? i : old));
-    if (supabase) await supabase.from('ingredients').update({ name: i.name, category: i.category, purchase_price: i.purchasePrice, purchase_unit: i.purchase_unit, use_unit: i.use_unit, conversion_value: i.conversionValue, stock_quantity: i.stockQuantity, low_stock_threshold: i.lowStockThreshold }).eq('id', i.id);
+    if (supabase) await supabase.from('ingredients').update({
+      name: i.name,
+      category: i.category,
+      purchase_price: i.purchasePrice,
+      purchase_unit: i.purchase_unit,
+      use_unit: i.use_unit,
+      conversion_value: i.conversionValue,
+      stock_quantity: i.stockQuantity,
+      low_stock_threshold: i.lowStockThreshold
+    }).eq('id', i.id);
   };
 
   const handleAddRecipe = async (r: Recipe) => {
     if (supabase) {
       try {
         const recipeData = {
+          id: generateId(),
           name: r.name,
           category: r.category || 'Makanan',
           selling_price: r.sellingPrice,
+          markup_percent: r.markupPercent,
+          labor_cost: r.laborCost,
+          overhead_cost: r.overheadCost,
+          shrinkage_percent: r.shrinkagePercent,
+          rounded_selling_price: r.roundedSellingPrice,
+          overhead_breakdown: r.overheadBreakdown,
           user_id: DEFAULT_USER_ID
         };
 
         const [res1, res2] = await Promise.all([
           supabase.from('hpp_recipes').insert([recipeData]).select(),
-          supabase.from('products').insert([{ name: r.name, category: r.category, price: r.sellingPrice }])
+          supabase.from('products').insert([{
+            id: recipeData.id,
+            name: r.name,
+            category: r.category,
+            price: r.sellingPrice,
+            is_active: true
+          }])
         ]);
 
         if (res1.data?.[0]) {
@@ -173,11 +252,30 @@ export function useAppState() {
     if (supabase) {
       const price = r.roundedSellingPrice || r.sellingPrice || 0;
       await Promise.all([
-        supabase.from('hpp_recipes').update({ name: r.name, category: r.category, selling_price: r.sellingPrice, markup_percent: r.markupPercent, labor_cost: r.laborCost, overhead_cost: r.overhead_cost, shrinkage_percent: r.shrinkage_percent, rounded_selling_price: r.roundedSellingPrice, overhead_breakdown: r.overheadBreakdown }).eq('id', r.id),
-        supabase.from('products').update({ name: r.name, category: r.category, price: price }).eq('name', r.name)
+        supabase.from('hpp_recipes').update({
+          name: r.name,
+          category: r.category,
+          selling_price: r.sellingPrice,
+          markup_percent: r.markupPercent,
+          labor_cost: r.laborCost,
+          overhead_cost: r.overheadCost,
+          shrinkage_percent: r.shrinkagePercent,
+          rounded_selling_price: r.roundedSellingPrice,
+          overhead_breakdown: r.overheadBreakdown
+        }).eq('id', r.id),
+        supabase.from('products').update({
+          name: r.name,
+          category: r.category,
+          price: price
+        }).eq('id', r.id)
       ]);
       await supabase.from('recipe_items').delete().eq('recipe_id', r.id);
-      if (r.items.length > 0) await supabase.from('recipe_items').insert(r.items.map(it => ({ id: generateId(), recipe_id: r.id, ingredient_id: it.ingredientId, quantity_needed: it.quantityNeeded })));
+      if (r.items.length > 0) await supabase.from('recipe_items').insert(r.items.map(it => ({
+        id: generateId(),
+        recipe_id: r.id,
+        ingredient_id: it.ingredientId,
+        quantity_needed: it.quantityNeeded
+      })));
     }
   };
 
@@ -187,7 +285,7 @@ export function useAppState() {
     if (supabase) {
       await Promise.all([
         supabase.from('hpp_recipes').delete().eq('id', id),
-        r ? supabase.from('products').delete().eq('name', r.name) : Promise.resolve()
+        supabase.from('products').delete().eq('id', id)
       ]);
     }
   };
@@ -197,33 +295,51 @@ export function useAppState() {
     setTransactions(prev => [ft, ...prev]);
     if (supabase) {
       try {
-        await supabase.from('transactions').insert([{
+        const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        const orderNum = `${dateStr}${randomNum}`;
+
+        await supabase.from('nomor_transactions_bill').insert([{
            id: ft.id,
-           total_price: ft.totalPrice,
+           order_number: orderNum,
+           total: ft.totalPrice,
            payment_method: ft.paymentMethod || 'Tunai',
            items: ft.items,
-           timestamp: ft.date
+           user_id: DEFAULT_USER_ID
         }]);
         loadData();
-      } catch (e) {}
+      } catch (e) {
+        console.error("[SUPABASE] Transaction Insert Error:", e);
+      }
     }
     return ft;
   };
 
   const handleVoidTransaction = async (id: string) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
-    if (supabase) { await supabase.from('transactions').delete().eq('id', id); loadData(); }
+    if (supabase) { await supabase.from('nomor_transactions_bill').delete().eq('id', id); loadData(); }
   };
 
   const handleSaveEmployee = async (e: Partial<Employee>, eid: string | null) => {
     if (!e.name) return;
     if (eid) {
       setEmployees(prev => prev.map(old => old.id === eid ? { ...old, ...e as Employee } : old));
-      if (supabase) await supabase.from('employees').update({ name: e.name, role: e.role, salary: e.salary, avatar_color: (e as any).avatarColor, initials: (e as any).initials }).eq('id', eid);
+      if (supabase) await supabase.from('employees').update({
+        name: e.name,
+        role: e.role,
+        salary: e.salary,
+        avatar_color: (e as any).avatarColor,
+        initials: (e as any).initials
+      }).eq('id', eid);
     } else {
       const ne: Employee = { ...e as Employee, id: generateId() };
       setEmployees(prev => [...prev, ne]);
-      if (supabase) await supabase.from('employees').insert([{ ...ne, user_id: DEFAULT_USER_ID }]);
+      if (supabase) await supabase.from('employees').insert([{
+        ...ne,
+        avatar_color: (ne as any).avatarColor,
+        initials: (ne as any).initials,
+        user_id: DEFAULT_USER_ID
+      }]);
     }
   };
 
@@ -236,7 +352,14 @@ export function useAppState() {
     if (!e.description || !e.amount) return;
     const ex: Expense = { id: generateId(), date: new Date().toISOString(), description: e.description, amount: Number(e.amount), category: e.category as any };
     setExpenses(prev => [ex, ...prev]);
-    if (supabase) await supabase.from('expenses').insert([{ id: ex.id, date: ex.date, description: ex.description, amount: ex.amount, category: ex.category, user_id: DEFAULT_USER_ID }]);
+    if (supabase) await supabase.from('expenses').insert([{
+      id: ex.id,
+      date: ex.date,
+      description: ex.description,
+      amount: ex.amount,
+      category: ex.category,
+      user_id: DEFAULT_USER_ID
+    }]);
   };
 
   const handleDeleteExpense = async (id: string) => {
@@ -248,12 +371,18 @@ export function useAppState() {
     if (!i.description || !i.amount) return;
     const inc: Expense = { id: generateId(), date: new Date().toISOString(), description: i.description, amount: Number(i.amount), category: 'Pemasukan' as any };
     setDailyIncomes(prev => [inc, ...prev]);
-    if (supabase) await supabase.from('incomes').insert([{ id: inc.id, description: inc.description, amount: inc.amount, date: inc.date, user_id: DEFAULT_USER_ID }]);
+    if (supabase) await supabase.from('daily_incomes').insert([{
+      id: inc.id,
+      description: inc.description,
+      amount: inc.amount,
+      income_date: inc.date.split('T')[0],
+      user_id: DEFAULT_USER_ID
+    }]);
   };
 
   const handleDeleteDailyIncome = async (id: string) => {
     setDailyIncomes(prev => prev.filter(inc => inc.id !== id));
-    if (supabase) await supabase.from('incomes').delete().eq('id', id);
+    if (supabase) await supabase.from('daily_incomes').delete().eq('id', id);
   };
 
   const toggleAttendance = async (eid: string, d: string, s: Attendance['status']) => {
@@ -269,36 +398,62 @@ export function useAppState() {
     } else {
       const na: Attendance = { id: generateId(), employeeId: eid, date: d, status: s };
       setAttendances(prev => [...prev, na]);
-      if (supabase) await supabase.from('absensi').insert([{ id: na.id, employee_id: eid, date: d, status: s, user_id: DEFAULT_USER_ID }]);
+      if (supabase) await supabase.from('absensi').insert([{
+        id: na.id,
+        employee_id: eid,
+        date: d,
+        status: s,
+        user_id: DEFAULT_USER_ID
+      }]);
     }
   };
 
   const handleUpdateShift = async (eid: string, d: string, t: ShiftType) => {
     setShifts(prev => ({ ...prev, [eid]: { ...(prev[eid] || {}), [d]: t } }));
-    if (supabase) await supabase.from('shifts').upsert({ employee_id: eid, date: d, type: t, user_id: DEFAULT_USER_ID }, { onConflict: 'employee_id,date' });
+    if (supabase) await supabase.from('shifts').upsert({
+      employee_id: eid,
+      date: d,
+      type: t,
+      user_id: DEFAULT_USER_ID
+    }, { onConflict: 'employee_id,date' });
   };
 
   const handleSaveAsset = async (a: Partial<RestaurantAsset>, eid: string | null) => {
     if (eid) {
       setRestaurantAssets(prev => prev.map(old => old.id === eid ? { ...old, ...a as RestaurantAsset } : old));
-      if (supabase) await supabase.from('assets').update({ name: a.name, category: a.category, quantity: a.quantity, price: a.price }).eq('id', eid);
+      if (supabase) await supabase.from('kedai_assets').update({
+        name: a.name,
+        category: a.category,
+        quantity: a.quantity,
+        price: a.price
+      }).eq('id', eid);
     } else {
-      const na = { ...a as RestaurantAsset, id: generateId() };
+      const tempId = generateId();
+      const na = { ...a as RestaurantAsset, id: tempId };
       setRestaurantAssets(prev => [...prev, na]);
-      if (supabase) await supabase.from('assets').insert([{
-         id: na.id,
-         name: na.name,
-         category: na.category,
-         quantity: na.quantity,
-         price: na.price,
-         user_id: DEFAULT_USER_ID
-      }]);
+
+      if (supabase) {
+        const { data, error } = await supabase.from('kedai_assets').insert([{
+           id: tempId,
+           name: a.name,
+           category: a.category,
+           quantity: a.quantity,
+           price: a.price,
+           user_id: DEFAULT_USER_ID
+        }]).select();
+
+        if (error) {
+          console.error("[SUPABASE] Asset Insert Error:", error.message);
+        } else if (data?.[0]) {
+          setRestaurantAssets(prev => prev.map(item => item.id === tempId ? { ...item, id: String(data[0].id) } : item));
+        }
+      }
     }
   };
 
   const handleDeleteAsset = async (id: string) => {
     setRestaurantAssets(prev => prev.filter(a => a.id !== id));
-    if (supabase) await supabase.from('assets').delete().eq('id', id);
+    if (supabase) await supabase.from('kedai_assets').delete().eq('id', id);
   };
 
   const handleAddMaintenance = async (l: any, a: RestaurantAsset) => {
