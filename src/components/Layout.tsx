@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Home, Package, UtensilsCrossed, Users, Bell, Download, Sun, Moon, Database } from "lucide-react";
+import { Home, Package, UtensilsCrossed, Users, Bell, Download, Sun, Moon, Database, Printer } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
@@ -29,6 +29,12 @@ export function Layout({ children, activeTab, onTabChange, theme, toggleTheme, i
       title: "ADMINISTRASI",
       items: [
         { id: "karyawan", label: "SDM", icon: Users },
+      ]
+    },
+    {
+      title: "PENGATURAN",
+      items: [
+        { id: "printer", label: "Printer", icon: Printer },
       ]
     }
   ];

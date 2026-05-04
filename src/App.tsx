@@ -8,6 +8,7 @@ import { JobdeskManager } from "./components/JobdeskManager";
 import { HistoryManager } from "./components/HistoryManager";
 import { PettyCashManager } from "./components/PettyCashManager";
 import { StorageManager } from "./components/StorageManager";
+import { PrinterSettings } from "./components/PrinterSettings";
 import { useAppState } from "./hooks/useAppState";
 import { Ingredient, Recipe, Employee, Transaction, Expense } from "./types";
 import { CATEGORIES, JOBDESK_MARKDOWN } from "./constants";
@@ -373,6 +374,9 @@ function AppContent() {
               onModalToggle={setIsModalOpen}
             />
           </div>
+        )}
+        {activeTab === "printer" && (
+          <PrinterSettings theme={state.theme} />
         )}
       </div>
     </Layout>

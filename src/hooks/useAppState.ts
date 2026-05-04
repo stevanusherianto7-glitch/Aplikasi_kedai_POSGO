@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Ingredient, Recipe, Employee, Transaction, Expense, Unit, RecipeItem, ShiftType, Attendance, RestaurantAsset } from "../types";
 import { supabase } from "../lib/supabase";
+import { BluetoothPrintService } from "../services/bluetoothPrintService";
 
 const generateId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -319,6 +320,18 @@ export function useAppState() {
         }
       } catch (e) {
         console.error("[SUPABASE] Critical Transaction Error:", e);
+      }
+
+      // AUTO PRINT RECEIPT
+      try {
+        const printerAddress = localStorage.getItem('printer_address');
+        if (printerAddress) {
+          await BluetoothPrintService.printReceipt(ft, printerAddress);
+        } else {
+          console.log("[PRINT] No printer address found in localStorage. Please set it in settings.");
+        }
+      } catch (printErr) {
+        console.error("[PRINT] Auto print failed:", printErr);
       }
     }
     return ft;
