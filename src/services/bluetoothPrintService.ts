@@ -58,7 +58,8 @@ export class BluetoothPrintService {
       
       // Header
       commands += ALIGN_CENTER + BOLD_ON + DOUBLE_SIZE + 'KEDAI ELVERA 57' + LINE_FEED;
-      commands += NORMAL_SIZE + '--------------------------------' + LINE_FEED;
+      commands += NORMAL_SIZE + 'Telp: 0895-3763-48626' + LINE_FEED;
+      commands += '--------------------------------' + LINE_FEED;
       
       // Info Transaksi
       commands += ALIGN_LEFT + BOLD_OFF;
