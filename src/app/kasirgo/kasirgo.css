@@ -4,7 +4,7 @@
   padding: 6mm 4mm;
   background-color: #ffffff;
   color: #1a1a1a;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: monospace;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;

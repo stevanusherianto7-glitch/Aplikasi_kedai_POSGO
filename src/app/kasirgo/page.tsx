@@ -610,6 +610,8 @@ function KasirGoContent({
                       type="month"
                       value={filterMonth}
                       onChange={(e) => setFilterMonth(e.target.value)}
+                      title="Pilih Bulan"
+                      aria-label="Pilih Bulan"
                       className="flex-1 md:w-40 h-10 px-4 bg-slate-50 border-none rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
                     />
                   </div>
@@ -654,6 +656,8 @@ function KasirGoContent({
 
                             <button
                               onClick={(e) => { e.stopPropagation(); handleVoidTransaction(t.id); }}
+                              title="Batalkan Transaksi"
+                              aria-label="Batalkan Transaksi"
                               className="absolute top-4 right-4 translate-x-12 group-hover:translate-x-0 text-slate-300 hover:text-rose-500 transition-all shrink-0"
                             >
                               <Trash2 size={16} />
@@ -669,19 +673,62 @@ function KasirGoContent({
         </AnimatePresence>
       </main>
 
-      {/* --- MODAL PROMO --- */}
+      {/* --- MODAL PROMO (Redesigned) --- */}
       {promoModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-sm p-6 shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
-            <div className="flex items-center justify-between mb-4 shrink-0">
-              <div className="space-y-0.5">
-                <h3 className="font-black text-sm tracking-tight text-slate-800 uppercase">Pilih Promo / Diskon</h3>
-                <p className="text-[7px] font-bold text-slate-400 uppercase tracking-[0.2em]">Pilih promo yang berlaku</p>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xl flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
+          <div className="bg-white/90 backdrop-blur-2xl rounded-[3rem] w-full max-w-sm p-8 shadow-2xl flex flex-col max-h-[85vh] border border-white/20 animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between mb-6 shrink-0">
+              <div className="space-y-1">
+                <h3 className="font-black text-base tracking-tight text-slate-900 uppercase">Pilih Promo</h3>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Maksimal 1 promo per transaksi</p>
               </div>
-              <button onClick={() => setPromoModalOpen(false)} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all"><X size={16}/></button>
+              <button 
+                onClick={() => setPromoModalOpen(false)} 
+                title="Tutup"
+                aria-label="Tutup"
+                className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all active:scale-90"
+              >
+                <X size={16} strokeWidth={3} />
+              </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-1">
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pr-1">
+              {/* Hardcoded Promo 1: Grand Opening */}
+              <button 
+                onClick={() => { 
+                  setSelectedDiscount({ type: 'percent', value: 20 }); 
+                  setPromoModalOpen(false); 
+                }}
+                className="group w-full p-4 bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 border border-emerald-100/50 rounded-2xl transition-all duration-300 active:scale-[0.98] text-left flex items-center justify-between"
+              >
+                <div className="space-y-0.5">
+                  <span className="text-xs font-black text-emerald-800 block">Grand Opening</span>
+                  <span className="text-[10px] font-bold text-emerald-600 block">Diskon Spesial Pembukaan</span>
+                </div>
+                <div className="w-12 h-12 bg-white rounded-xl flex flex-col items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                  <span className="text-xs font-black text-emerald-600">20</span>
+                  <span className="text-[7px] font-bold text-emerald-500 uppercase">%</span>
+                </div>
+              </button>
+
+              {/* Hardcoded Promo 2: Proklamasi */}
+              <button 
+                onClick={() => { 
+                  setSelectedDiscount({ type: 'percent', value: 10 }); 
+                  setPromoModalOpen(false); 
+                }}
+                className="group w-full p-4 bg-gradient-to-br from-rose-50 to-orange-50 hover:from-rose-100 hover:to-orange-100 border border-rose-100/50 rounded-2xl transition-all duration-300 active:scale-[0.98] text-left flex items-center justify-between"
+              >
+                <div className="space-y-0.5">
+                  <span className="text-xs font-black text-rose-800 block">Diskon Proklamasi</span>
+                  <span className="text-[10px] font-bold text-rose-600 block">Semarak Kemerdekaan</span>
+                </div>
+                <div className="w-12 h-12 bg-white rounded-xl flex flex-col items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                  <span className="text-xs font-black text-rose-600">10</span>
+                  <span className="text-[7px] font-bold text-rose-500 uppercase">%</span>
+                </div>
+              </button>
+
               {promoEvents && promoEvents.filter((p: any) => p.isActive).map((promo: any) => (
                 <button 
                   key={promo.id}
@@ -692,20 +739,35 @@ function KasirGoContent({
                     }); 
                     setPromoModalOpen(false); 
                   }}
-                  className="w-full h-14 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-none font-bold flex flex-col items-start justify-center px-6 rounded-2xl active:scale-95 transition-all"
+                  className="group w-full p-4 bg-gradient-to-br from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border border-blue-100/50 rounded-2xl transition-all duration-300 active:scale-[0.98] text-left flex items-center justify-between"
                 >
-                  <span className="text-xs font-black">{promo.name}</span>
-                  <span className="text-[10px] font-bold text-emerald-600">
-                    {promo.discountPercent > 0 ? `Diskon ${promo.discountPercent}%` : `Potongan ${formatCurrency(promo.discountAmount)}`}
-                  </span>
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-black text-blue-800 block">{promo.name}</span>
+                    <span className="text-[10px] font-bold text-blue-600 block">Promo Aktif</span>
+                  </div>
+                  <div className="w-12 h-12 bg-white rounded-xl flex flex-col items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                    {promo.discountPercent > 0 ? (
+                      <>
+                        <span className="text-xs font-black text-blue-600">{promo.discountPercent}</span>
+                        <span className="text-[7px] font-bold text-blue-500 uppercase">%</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-[8px] font-black text-blue-600">RP</span>
+                        <span className="text-[9px] font-black text-blue-600">{formatNumber(promo.discountAmount)}</span>
+                      </>
+                    )}
+                  </div>
                 </button>
               ))}
-              
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-slate-100 shrink-0">
               <button 
                 onClick={() => { setSelectedDiscount(null); setPromoModalOpen(false); }}
-                className="w-full h-12 border border-slate-200 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-50 active:scale-95 transition-all"
+                className="w-full h-12 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 active:scale-95 transition-all shadow-lg shadow-slate-900/10"
               >
-                Tanpa Diskon / Reset
+                Reset / Tanpa Diskon
               </button>
             </div>
           </div>
@@ -721,7 +783,7 @@ function KasirGoContent({
                 <h3 className="font-black text-sm tracking-tight text-slate-800 uppercase">Manajemen Menu Kasir</h3>
                 <p className="text-[7px] font-bold text-slate-400 uppercase tracking-[0.2em]">Update Katalog Jualan</p>
               </div>
-              <button onClick={() => { setIsSettingsOpen(false); setEditingRecipeId(null); }} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all"><X size={16}/></button>
+              <button onClick={() => { setIsSettingsOpen(false); setEditingRecipeId(null); }} title="Tutup" aria-label="Tutup" className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all"><X size={16}/></button>
             </div>
 
             <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pr-1">
@@ -853,12 +915,16 @@ function KasirGoContent({
                       <div className="flex items-center gap-1">
                         <button
                           onClick={(e) => { e.stopPropagation(); handleEditMenu(recipe); }}
+                          title="Edit Menu"
+                          aria-label="Edit Menu"
                           className="w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 bg-blue-50 active:bg-blue-100 transition-all shadow-sm"
                         >
                           <Pencil size={14} />
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); handleDeleteMenu(recipe?.id); }}
+                          title="Hapus Menu"
+                          aria-label="Hapus Menu"
                           className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-600 bg-rose-50 active:bg-rose-100 transition-all shadow-sm"
                         >
                           <Trash2 size={14} />
@@ -888,6 +954,8 @@ function KasirGoContent({
             <div className="grid grid-cols-1 gap-3">
               <button
                 onClick={() => handlePrint('receipt-kitchen', 'KITCHEN_ORDER')}
+                title="Cetak Struk Dapur"
+                aria-label="Cetak Struk Dapur"
                 className="w-full h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-between px-6 active:scale-95 transition-all group shadow-lg shadow-blue-500/20"
               >
                 <div className="flex items-center gap-3">
@@ -899,6 +967,8 @@ function KasirGoContent({
 
               <button
                 onClick={() => handlePrint('receipt-customer', 'CUSTOMER_RECEIPT')}
+                title="Cetak Struk Pelanggan"
+                aria-label="Cetak Struk Pelanggan"
                 className="w-full h-14 bg-white border-2 border-slate-100 text-slate-800 rounded-2xl flex items-center justify-between px-6 active:scale-95 transition-all group"
               >
                 <div className="flex items-center gap-3">
@@ -910,6 +980,8 @@ function KasirGoContent({
 
               <button
                 onClick={() => handlePrint('report-closing', 'CLOSING_REPORT')}
+                title="Cetak Laporan Closing"
+                aria-label="Cetak Laporan Closing"
                 className="w-full h-14 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-between px-6 active:scale-95 transition-all group border border-slate-100"
               >
                 <div className="flex items-center gap-3">
@@ -1008,7 +1080,7 @@ function KasirGoContent({
                   <span className="receipt-col-price">{formatNumber(item.price)}</span>
                   <span className="receipt-col-total">{formatNumber(item.price * item.quantity)}</span>
                 </div>
-                {item.note && <div className="receipt-info" style={{paddingLeft: '4px'}}>* {item.note}</div>}
+                {item.note && <div className="receipt-info pl-1">* {item.note}</div>}
               </div>
             ))}
           </div>
