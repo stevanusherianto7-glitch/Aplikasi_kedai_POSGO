@@ -17,7 +17,17 @@ export function PrinterSettings({ theme = 'light' }: { theme?: 'light' | 'dark' 
     setIsScanning(true);
     try {
       const list = await BluetoothPrintService.listDevices();
-      setDevices(list || []);
+      const updatedList = list || [];
+      
+      // Fallback: Jika tidak ada perangkat (misal di emulator), tambahkan mock RPP02N untuk testing
+      if (updatedList.length === 0) {
+        updatedList.push({
+          name: 'RPP02N',
+          address: '00:11:22:33:44:55'
+        });
+      }
+      
+      setDevices(updatedList);
     } catch (err) {
       console.error(err);
     } finally {
