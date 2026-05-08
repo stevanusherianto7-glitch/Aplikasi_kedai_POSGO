@@ -57,35 +57,33 @@ export class BluetoothPrintService {
       let commands = INITIALIZE;
       
       // Header
-      commands += ALIGN_CENTER + BOLD_ON + DOUBLE_SIZE + 'KEDAI ELVERA 57' + LINE_FEED;
-      commands += NORMAL_SIZE + 'Telp: 0895-3763-48626' + LINE_FEED;
+      commands += ALIGN_CENTER + BOLD_ON + DOUBLE_HEIGHT + 'KEDAI ELVERA 57' + LINE_FEED;
+      commands += NORMAL_SIZE + BOLD_OFF + 'Telp: 0895-3763-48626' + LINE_FEED;
+      commands += LINE_FEED; // Padding setelah header
       commands += '--------------------------------' + LINE_FEED;
       
       // Info Transaksi
-      commands += ALIGN_LEFT + BOLD_OFF;
-      commands += `No: ${transaction.id.slice(0, 8)}` + LINE_FEED;
+      commands += ALIGN_LEFT;
+      commands += `No : ${transaction.id.slice(0, 8)}` + LINE_FEED;
       commands += `Tgl: ${new Date(transaction.date).toLocaleString('id-ID')}` + LINE_FEED;
       commands += '--------------------------------' + LINE_FEED;
 
       // Items
       transaction.items.forEach(item => {
-        commands += item.name + LINE_FEED;
+        commands += BOLD_ON + item.name + BOLD_OFF + LINE_FEED; // Nama item tebal
         
         const originalSubtotal = item.quantity * item.price;
-        // Gunakan harga diskon jika ada, jika tidak gunakan harga normal
         const subtotalToDisplay = item.discountedSubtotal ?? originalSubtotal;
         
-        const qtyText = `${item.quantity} x ${formatIDR(item.price)}`;
+        const qtyText = `  ${item.quantity} x ${formatIDR(item.price)}`; // Indentasi qty
         const totalText = formatIDR(subtotalToDisplay);
         
-        // Padding untuk 32 kolom
         const paddingCount = 32 - qtyText.length - totalText.length;
         const padding = paddingCount > 0 ? ' '.repeat(paddingCount) : ' ';
         commands += qtyText + padding + totalText + LINE_FEED;
 
-        // Tampilkan baris diskon jika ada potongan harga
         if (subtotalToDisplay < originalSubtotal) {
-          const discountLabel = `  Diskon (${item.discountPercent || 0}%):`;
+          const discountLabel = `    Diskon (${item.discountPercent || 0}%):`; // Indentasi diskon
           const discountValue = `-${formatIDR(originalSubtotal - subtotalToDisplay)}`;
           const discPadding = 32 - discountLabel.length - discountValue.length;
           commands += discountLabel + ' '.repeat(discPadding > 0 ? discPadding : 1) + discountValue + LINE_FEED;
@@ -100,6 +98,7 @@ export class BluetoothPrintService {
       const totalVal = formatIDR(transaction.totalPrice);
       const totalPadding = 32 - totalLabel.length - totalVal.length;
       commands += totalLabel + ' '.repeat(totalPadding > 0 ? totalPadding : 1) + totalVal + LINE_FEED;
+      commands += BOLD_OFF + LINE_FEED; // Padding setelah total
       
       commands += ALIGN_CENTER + BOLD_OFF;
       commands += LINE_FEED + 'Terima Kasih Atas' + LINE_FEED;
