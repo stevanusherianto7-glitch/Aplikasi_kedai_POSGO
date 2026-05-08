@@ -69,13 +69,26 @@ export class BluetoothPrintService {
       // Items
       transaction.items.forEach(item => {
         commands += item.name + LINE_FEED;
-        const qtyText = `${item.quantity} x ${formatIDR(item.price)}`;
-        const totalText = formatIDR(item.quantity * item.price);
         
-        // Simple padding for 32 columns
+        const originalSubtotal = item.quantity * item.price;
+        // Gunakan harga diskon jika ada, jika tidak gunakan harga normal
+        const subtotalToDisplay = item.discountedSubtotal ?? originalSubtotal;
+        
+        const qtyText = `${item.quantity} x ${formatIDR(item.price)}`;
+        const totalText = formatIDR(subtotalToDisplay);
+        
+        // Padding untuk 32 kolom
         const paddingCount = 32 - qtyText.length - totalText.length;
         const padding = paddingCount > 0 ? ' '.repeat(paddingCount) : ' ';
         commands += qtyText + padding + totalText + LINE_FEED;
+
+        // Tampilkan baris diskon jika ada potongan harga
+        if (subtotalToDisplay < originalSubtotal) {
+          const discountLabel = `  Diskon (${item.discountPercent || 0}%):`;
+          const discountValue = `-${formatIDR(originalSubtotal - subtotalToDisplay)}`;
+          const discPadding = 32 - discountLabel.length - discountValue.length;
+          commands += discountLabel + ' '.repeat(discPadding > 0 ? discPadding : 1) + discountValue + LINE_FEED;
+        }
       });
 
       commands += '--------------------------------' + LINE_FEED;

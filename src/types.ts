@@ -47,11 +47,26 @@ export interface Employee {
   initials?: string;
 }
 
+export interface PromoEvent {
+  id: string;
+  userId?: string;
+  name: string;
+  startsAt: string;
+  endsAt: string;
+  discountPercent: number;
+  discountAmount: number;
+  isActive: boolean;
+}
+
 export interface TransactionItem {
   recipeId: string;
   name: string;
   quantity: number;
   price: number;
+  discountPercent?: number;
+  discountAmount?: number;
+  promoEventId?: string;
+  discountedSubtotal?: number;
 }
 
 export interface Transaction {

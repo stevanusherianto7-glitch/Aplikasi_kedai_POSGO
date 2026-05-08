@@ -398,9 +398,9 @@ VITE_SUPABASE_ANON_KEY=sb_publishable__YgmAFLxNl1Tr5XmeKikXA_Q1SnPa1f
 
 | Key | Value |
 |---|---|
-| **Repository** | `https://github.com/stevanusherianto7-glitch/KedaiElvira57Cost` |
+| **Repository** | `https://github.com/stevanusherianto7-glitch/Aplikasi_kedai_POSGO` |
 | **Branch utama** | `main` |
-| **Clone (HTTPS)** | `git clone https://github.com/stevanusherianto7-glitch/KedaiElvira57Cost.git` |
+| **Clone (HTTPS)** | `git clone https://github.com/stevanusherianto7-glitch/Aplikasi_kedai_POSGO.git` |
 
 ### Tenant ID (Supabase RLS)
 

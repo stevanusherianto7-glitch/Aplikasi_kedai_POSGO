@@ -1,12 +1,12 @@
 {
   "env": {
-    "VITE_SUPABASE_URL": "https://citgvmqzsopvbmxxxuea.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "sb_publishable_uYISTh23yy8bueVIPep-cw_xi5utgGU"
+    "VITE_SUPABASE_URL": "https://mrrfmrzhumcmhmqjceul.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "sb_publishable__YgmAFLxNl1Tr5XmeKikXA_Q1SnPa1f"
   },
   "build": {
     "env": {
-      "VITE_SUPABASE_URL": "https://citgvmqzsopvbmxxxuea.supabase.co",
-      "VITE_SUPABASE_ANON_KEY": "sb_publishable_uYISTh23yy8bueVIPep-cw_xi5utgGU"
+      "VITE_SUPABASE_URL": "https://mrrfmrzhumcmhmqjceul.supabase.co",
+      "VITE_SUPABASE_ANON_KEY": "sb_publishable__YgmAFLxNl1Tr5XmeKikXA_Q1SnPa1f"
     }
   },
   "rewrites": [

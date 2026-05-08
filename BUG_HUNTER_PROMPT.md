@@ -24,8 +24,8 @@ Tugasmu adalah **menemukan, menganalisis, dan memperbaiki bug** secara sistemati
 ### Kredensial & Koneksi
 - **Supabase URL**: `https://mrrfmrzhumcmhmqjceul.supabase.co`
 - **Supabase Anon Key**: `sb_publishable__YgmAFLxNl1Tr5XmeKikXA_Q1SnPa1f`
-- **GitHub**: `https://github.com/stevanusherianto7-glitch/kedaielvera57`
-- **Vercel**: `https://vercel.com/antos-projects-b975a4ca/kedaielvera57-psro`
+- **GitHub**: `https://github.com/stevanusherianto7-glitch/Aplikasi_kedai_POSGO`
+- **Vercel**: `[URL Vercel Baru Belum Ditentukan]`
 - **TENANT_ID**: `e57a0505-1234-5678-90ab-c0de57f17ac1` ← **JANGAN DIUBAH**
 
 ### Struktur Kritis

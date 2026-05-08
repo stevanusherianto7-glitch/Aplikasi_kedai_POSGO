@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Ingredient, Recipe, Employee, Transaction, Expense, Unit, RecipeItem, ShiftType, Attendance, RestaurantAsset } from "../types";
+import { Ingredient, Recipe, Employee, Transaction, Expense, Unit, RecipeItem, ShiftType, Attendance, RestaurantAsset, PromoEvent } from "../types";
 import { supabase } from "../lib/supabase";
 import { BluetoothPrintService } from "../services/bluetoothPrintService";
 
@@ -29,6 +29,7 @@ export function useAppState() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [shifts, setShifts] = React.useState<Record<string, Record<string, ShiftType>>>({});
   const [weeklyPattern, setWeeklyPattern] = React.useState<Record<string, ShiftType[]>>({});
+  const [promoEvents, setPromoEvents] = React.useState<PromoEvent[]>([]);
   const [isLoaded, setIsLoaded] = React.useState(false);
 
   const loadData = React.useCallback(async () => {
@@ -41,7 +42,7 @@ export function useAppState() {
            return data || [];
         };
 
-        const [ingD, recD, recItemsD, empD, txD, expD, assetD, logsD, attD, confD, incD, shiftD] = await Promise.all([
+        const [ingD, recD, recItemsD, empD, txD, expD, assetD, logsD, attD, confD, incD, shiftD, promoD] = await Promise.all([
           fetchTable('ingredients'),
           fetchTable('hpp_recipes'),
           fetchTable('recipe_items'),
@@ -53,7 +54,8 @@ export function useAppState() {
           fetchTable('absensi'),
           fetchTable('app_config'),
           fetchTable('daily_incomes'), // Sesuai screenshot
-          fetchTable('shifts')
+          fetchTable('shifts'),
+          fetchTable('promo_events')
         ]);
 
         if (confD && Array.isArray(confD)) {
@@ -150,6 +152,17 @@ export function useAppState() {
           description: i.description,
           amount: Number(i.amount || 0),
           category: 'Pemasukan' as any
+        })));
+
+        setPromoEvents((promoD || []).map((p: any) => ({
+          id: p.id,
+          userId: p.user_id,
+          name: p.name,
+          startsAt: p.starts_at,
+          endsAt: p.ends_at,
+          discountPercent: Number(p.discount_percent || 0),
+          discountAmount: Number(p.discount_amount || 0),
+          isActive: p.is_active
         })));
       }
     } catch (e) { console.error("System Exception during State Load:", e); }
@@ -292,11 +305,56 @@ export function useAppState() {
   };
 
   const handleProcessTransaction = async (t: Transaction) => {
-    const ft: Transaction = { ...t, date: new Date().toISOString() };
+    const now = new Date();
+    const nowStr = now.toISOString();
+    
+    // 1. Cari promo aktif
+    const activePromo = promoEvents.find(p => 
+      p.isActive && 
+      p.startsAt <= nowStr && 
+      p.endsAt >= nowStr
+    );
+
+    // 2. Hitung diskon per item
+    const updatedItems = t.items.map(item => {
+      let discountPercent = 0;
+      let discountAmount = 0;
+      let discountedSubtotal = item.quantity * item.price;
+
+      if (activePromo) {
+        discountPercent = activePromo.discountPercent;
+        discountAmount = activePromo.discountAmount;
+        
+        // Aturan: Persentase dulu baru Nominal
+        discountedSubtotal = discountedSubtotal * (1 - discountPercent / 100);
+        discountedSubtotal = discountedSubtotal - discountAmount;
+        
+        // Guard agar tidak negatif
+        if (discountedSubtotal < 0) discountedSubtotal = 0;
+      }
+
+      return {
+        ...item,
+        discountPercent,
+        discountAmount,
+        promoEventId: activePromo?.id,
+        discountedSubtotal
+      };
+    });
+
+    // 3. Hitung ulang total transaksi
+    const newTotalPrice = updatedItems.reduce((acc, item) => acc + (item.discountedSubtotal ?? 0), 0);
+
+    const ft: Transaction = { 
+      ...t, 
+      date: nowStr,
+      items: updatedItems,
+      totalPrice: newTotalPrice
+    };
+    
     setTransactions(prev => [ft, ...prev]);
     if (supabase) {
       try {
-        const now = new Date();
         const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
         const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
         const codeText = `${dateStr}${randomNum}`;
