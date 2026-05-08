@@ -22,6 +22,7 @@ interface BillingSectionProps {
   removeFromCart: (id: string | number, isTakeAway: boolean) => void;
   formatInputNumber: (val: string) => string;
   parseInputNumber: (val: string) => number;
+  setPromoModalOpen: (open: boolean) => void;
 }
 
 export const BillingSection: React.FC<BillingSectionProps> = (props) => {
@@ -29,7 +30,7 @@ export const BillingSection: React.FC<BillingSectionProps> = (props) => {
     cart, totalAmount, paymentMethod, setPaymentMethod, cashReceivedDisplay, change,
     customerName, customerWA, setCart, setIsBillingOpen, setCashReceivedDisplay,
     setCashReceived, setCustomerName, setCustomerWA, handleCheckout, removeFromCart,
-    formatInputNumber, parseInputNumber
+    formatInputNumber, parseInputNumber, setPromoModalOpen
   } = props;
   return (
     <div className="bg-white rounded-[2rem] shadow-2xl md:shadow-lg border border-slate-200 p-4 md:p-6 md:sticky md:top-4 h-full md:h-auto overflow-y-auto scrolling-touch touch-auto max-w-sm mx-auto w-full pb-8">
@@ -80,6 +81,12 @@ export const BillingSection: React.FC<BillingSectionProps> = (props) => {
         <div className="bg-blue-50 p-3 md:p-4 rounded-xl border border-blue-100">
           <p className="text-[10px] md:text-xs text-blue-600 font-bold uppercase mb-0.5 md:mb-1">Total Bayar</p>
           <p className="text-lg md:text-xl font-black text-blue-700">{formatIDR(totalAmount)}</p>
+          <button 
+            onClick={() => setPromoModalOpen(true)}
+            className="mt-2 text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 active:scale-95 transition-transform"
+          >
+            🎟️ Pilih Promo / Diskon
+          </button>
         </div>
 
         <div className="space-y-2 md:space-y-3">

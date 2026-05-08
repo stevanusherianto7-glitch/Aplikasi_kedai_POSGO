@@ -78,6 +78,7 @@ interface KasirGoPageProps {
   onVoidTransaction?: (id: string) => Promise<void>;
   onBack?: () => void;
   theme?: 'light' | 'dark';
+  promoEvents?: any[];
 }
 
 export default function KasirGoPage(props: KasirGoPageProps) {
@@ -117,7 +118,8 @@ function KasirGoContent({
   onVoidTransaction,
   onBack,
   theme = 'dark',
-  onModalToggle
+  onModalToggle,
+  promoEvents = []
 }: KasirGoPageProps & { onModalToggle?: (isOpen: boolean) => void }) {
   // Navigation State
   const [activeTab, setActiveTab] = useState<'kasir' | 'pengeluaran' | 'pemasukan' | 'laporan'>('kasir');
@@ -139,6 +141,8 @@ function KasirGoContent({
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [voidedTransactions, setVoidedTransactions] = useState<any[]>([]);
+  const [selectedDiscount, setSelectedDiscount] = useState<{ type: 'percent' | 'amount', value: number } | null>(null);
+  const [promoModalOpen, setPromoModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'Tunai' | 'QRIS' | 'Debet'>('Tunai');
   const [cashReceived, setCashReceived] = useState<number>(0);
   const [cashReceivedDisplay, setCashReceivedDisplay] = useState<string>('');
@@ -187,7 +191,11 @@ function KasirGoContent({
   const [editMenuData, setEditMenuData] = useState({ name: '', price: '', category: 'Makanan' });
 
   // Calculations
-  const totalAmount = (cart || []).reduce((sum, item) => sum + (Number(item?.price || 0) * (Number(item?.quantity || 0))), 0);
+  const baseTotalAmount = (cart || []).reduce((sum, item) => sum + (Number(item?.price || 0) * (Number(item?.quantity || 0))), 0);
+  const discountAmount = selectedDiscount 
+    ? (selectedDiscount.type === 'percent' ? (baseTotalAmount * selectedDiscount.value / 100) : selectedDiscount.value)
+    : 0;
+  const totalAmount = baseTotalAmount - discountAmount;
   const change = cashReceived > totalAmount ? cashReceived - totalAmount : 0;
 
   const totalIncome = (transactions || []).reduce((sum, t) => sum + (Number(t?.totalPrice || t?.total || 0)), 0);
@@ -495,6 +503,7 @@ function KasirGoContent({
                 <BillingSection
                   cart={cart}
                   totalAmount={totalAmount}
+                  setPromoModalOpen={setPromoModalOpen}
                   paymentMethod={paymentMethod}
                   setPaymentMethod={setPaymentMethod}
                   cashReceivedDisplay={cashReceivedDisplay}
@@ -659,6 +668,49 @@ function KasirGoContent({
           )}
         </AnimatePresence>
       </main>
+
+      {/* --- MODAL PROMO --- */}
+      {promoModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-sm p-6 shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between mb-4 shrink-0">
+              <div className="space-y-0.5">
+                <h3 className="font-black text-sm tracking-tight text-slate-800 uppercase">Pilih Promo / Diskon</h3>
+                <p className="text-[7px] font-bold text-slate-400 uppercase tracking-[0.2em]">Pilih promo yang berlaku</p>
+              </div>
+              <button onClick={() => setPromoModalOpen(false)} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all"><X size={16}/></button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-1">
+              {promoEvents && promoEvents.filter((p: any) => p.isActive).map((promo: any) => (
+                <button 
+                  key={promo.id}
+                  onClick={() => { 
+                    setSelectedDiscount({ 
+                      type: promo.discountPercent > 0 ? 'percent' : 'amount', 
+                      value: promo.discountPercent > 0 ? promo.discountPercent : promo.discountAmount 
+                    }); 
+                    setPromoModalOpen(false); 
+                  }}
+                  className="w-full h-14 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-none font-bold flex flex-col items-start justify-center px-6 rounded-2xl active:scale-95 transition-all"
+                >
+                  <span className="text-xs font-black">{promo.name}</span>
+                  <span className="text-[10px] font-bold text-emerald-600">
+                    {promo.discountPercent > 0 ? `Diskon ${promo.discountPercent}%` : `Potongan ${formatCurrency(promo.discountAmount)}`}
+                  </span>
+                </button>
+              ))}
+              
+              <button 
+                onClick={() => { setSelectedDiscount(null); setPromoModalOpen(false); }}
+                className="w-full h-12 border border-slate-200 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-50 active:scale-95 transition-all"
+              >
+                Tanpa Diskon / Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* --- MODAL SETTINGS (MANAJEMEN MENU KASIR) --- */}
       {isSettingsOpen && (
@@ -918,7 +970,7 @@ function KasirGoContent({
             <div className="receipt-brand-large">Kedai Elvera 57</div>
             <div className="receipt-address">Jl. Pertanian No. 57</div>
             <div className="receipt-address">Lebak Bulus, Jakarta Selatan</div>
-            <div className="receipt-address">WA: 0812-3456-7890</div>
+            <div className="receipt-address">WA: 0895-3763-48626</div>
           </div>
           <div className="receipt-order-no">Order #{String(currentOrderNumber).padStart(3, '0')}</div>
           <div className="receipt-divider"></div>
