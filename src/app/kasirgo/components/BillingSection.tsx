@@ -18,6 +18,7 @@ interface BillingSectionProps {
   setCashReceived: (val: number) => void;
   setCustomerName: (name: string) => void;
   setCustomerWA: (wa: string) => void;
+  paymentMethods: any[];
   handleCheckout: () => void;
   removeFromCart: (id: string | number, isTakeAway: boolean) => void;
   formatInputNumber: (val: string) => string;
@@ -78,12 +79,13 @@ export const BillingSection: React.FC<BillingSectionProps> = (props) => {
           </div>
         )}
 
-        <div className="bg-blue-50 p-3 md:p-4 rounded-xl border border-blue-100">
-          <p className="text-[10px] md:text-xs text-blue-600 font-bold uppercase mb-0.5 md:mb-1">Total Bayar</p>
-          <p className="text-lg md:text-xl font-black text-blue-700">{formatIDR(totalAmount)}</p>
+        <div className="bg-blue-50/70 p-5 rounded-2xl border border-blue-100/50 shadow-sm">
+          <p className="text-[9px] text-blue-500 font-bold uppercase tracking-wider mb-1">Total Bayar</p>
+          <p className="text-2xl font-black text-blue-700">{formatIDR(totalAmount)}</p>
+          <div className="border-t border-blue-100/50 my-3"></div>
           <button 
             onClick={() => setPromoModalOpen(true)}
-            className="mt-2 text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 active:scale-95 transition-transform"
+            className="w-full h-9 bg-white border border-blue-100 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-50 flex items-center justify-center gap-1.5 active:scale-95 transition-all"
           >
             🎟️ Pilih Promo / Diskon
           </button>
@@ -92,24 +94,15 @@ export const BillingSection: React.FC<BillingSectionProps> = (props) => {
         <div className="space-y-2 md:space-y-3">
           <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase">Metode Pembayaran</p>
           <div className="grid grid-cols-3 gap-1.5 md:gap-2">
-            <button 
-              onClick={() => setPaymentMethod('Tunai')}
-              className={`min-h-[40px] md:min-h-[50px] rounded-xl flex flex-col items-center justify-center gap-0.5 md:gap-1 text-[9px] md:text-[10px] font-bold border transition-all active:scale-95 ${paymentMethod === 'Tunai' ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 active:bg-slate-50'}`}
-            >
-              <Wallet size={16}/> TUNAI
-            </button>
-            <button 
-              onClick={() => setPaymentMethod('QRIS')}
-              className={`min-h-[40px] md:min-h-[50px] rounded-xl flex flex-col items-center justify-center gap-0.5 md:gap-1 text-[9px] md:text-[10px] font-bold border transition-all active:scale-95 ${paymentMethod === 'QRIS' ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 active:bg-slate-50'}`}
-            >
-              <QrCode size={16}/> QRIS
-            </button>
-            <button 
-              onClick={() => setPaymentMethod('Debet')}
-              className={`min-h-[40px] md:min-h-[50px] rounded-xl flex flex-col items-center justify-center gap-0.5 md:gap-1 text-[9px] md:text-[10px] font-bold border transition-all active:scale-95 ${paymentMethod === 'Debet' ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 active:bg-slate-50'}`}
-            >
-              <CreditCard size={16}/> DEBET
-            </button>
+            {paymentMethods && paymentMethods.filter(p => p.isActive).map(p => (
+              <button 
+                key={p.id}
+                onClick={() => setPaymentMethod(p.name as any)}
+                className={`min-h-[40px] md:min-h-[50px] rounded-xl flex flex-col items-center justify-center gap-0.5 md:gap-1 text-[9px] md:text-[10px] font-bold border transition-all duration-300 active:scale-95 ${paymentMethod === p.name ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white border-transparent shadow-lg shadow-blue-900/30 scale-[1.02]' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:bg-slate-50'}`}
+              >
+                {p.name === 'Tunai' ? <Wallet size={16}/> : p.name === 'QRIS' ? <QrCode size={16}/> : <CreditCard size={16}/>} {p.name.toUpperCase()}
+              </button>
+            ))}
           </div>
         </div>
 

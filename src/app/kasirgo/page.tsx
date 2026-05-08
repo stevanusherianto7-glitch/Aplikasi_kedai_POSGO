@@ -79,6 +79,7 @@ interface KasirGoPageProps {
   onBack?: () => void;
   theme?: 'light' | 'dark';
   promoEvents?: any[];
+  paymentMethods?: any[];
 }
 
 export default function KasirGoPage(props: KasirGoPageProps) {
@@ -119,7 +120,8 @@ function KasirGoContent({
   onBack,
   theme = 'dark',
   onModalToggle,
-  promoEvents = []
+  promoEvents = [],
+  paymentMethods = []
 }: KasirGoPageProps & { onModalToggle?: (isOpen: boolean) => void }) {
   // Navigation State
   const [activeTab, setActiveTab] = useState<'kasir' | 'pengeluaran' | 'pemasukan' | 'laporan'>('kasir');
@@ -506,6 +508,7 @@ function KasirGoContent({
                   setPromoModalOpen={setPromoModalOpen}
                   paymentMethod={paymentMethod}
                   setPaymentMethod={setPaymentMethod}
+                  paymentMethods={paymentMethods}
                   cashReceivedDisplay={cashReceivedDisplay}
                   change={change}
                   customerName={customerName}
@@ -705,9 +708,8 @@ function KasirGoContent({
                   <span className="text-xs font-black text-emerald-800 block">Grand Opening</span>
                   <span className="text-[10px] font-bold text-emerald-600 block">Diskon Spesial Pembukaan</span>
                 </div>
-                <div className="w-12 h-12 bg-white rounded-xl flex flex-col items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                  <span className="text-xs font-black text-emerald-600">20</span>
-                  <span className="text-[7px] font-bold text-emerald-500 uppercase">%</span>
+                <div className="px-3 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                  <span className="text-sm font-black text-emerald-600">20%</span>
                 </div>
               </button>
 
@@ -723,9 +725,8 @@ function KasirGoContent({
                   <span className="text-xs font-black text-rose-800 block">Diskon Proklamasi</span>
                   <span className="text-[10px] font-bold text-rose-600 block">Semarak Kemerdekaan</span>
                 </div>
-                <div className="w-12 h-12 bg-white rounded-xl flex flex-col items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                  <span className="text-xs font-black text-rose-600">10</span>
-                  <span className="text-[7px] font-bold text-rose-500 uppercase">%</span>
+                <div className="px-3 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                  <span className="text-sm font-black text-rose-600">10%</span>
                 </div>
               </button>
 
@@ -745,17 +746,11 @@ function KasirGoContent({
                     <span className="text-xs font-black text-blue-800 block">{promo.name}</span>
                     <span className="text-[10px] font-bold text-blue-600 block">Promo Aktif</span>
                   </div>
-                  <div className="w-12 h-12 bg-white rounded-xl flex flex-col items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                  <div className="px-3 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
                     {promo.discountPercent > 0 ? (
-                      <>
-                        <span className="text-xs font-black text-blue-600">{promo.discountPercent}</span>
-                        <span className="text-[7px] font-bold text-blue-500 uppercase">%</span>
-                      </>
+                      <span className="text-sm font-black text-blue-600">{promo.discountPercent}%</span>
                     ) : (
-                      <>
-                        <span className="text-[8px] font-black text-blue-600">RP</span>
-                        <span className="text-[9px] font-black text-blue-600">{formatNumber(promo.discountAmount)}</span>
-                      </>
+                      <span className="text-sm font-black text-blue-600">Rp{formatNumber(promo.discountAmount)}</span>
                     )}
                   </div>
                 </button>
@@ -765,7 +760,7 @@ function KasirGoContent({
             <div className="mt-6 pt-4 border-t border-slate-100 shrink-0">
               <button 
                 onClick={() => { setSelectedDiscount(null); setPromoModalOpen(false); }}
-                className="w-full h-12 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 active:scale-95 transition-all shadow-lg shadow-slate-900/10"
+                className="w-full h-12 bg-[#800000] text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#600000] active:scale-95 transition-all shadow-lg shadow-red-900/10"
               >
                 Reset / Tanpa Diskon
               </button>
@@ -1060,8 +1055,8 @@ function KasirGoContent({
               <span className="receipt-value">{formatTransactionNumber(new Date(), currentOrderNumber || 0)}</span>
             </div>
             <div className="receipt-row">
-              <span className="receipt-label">Pelayan:</span>
-              <span className="receipt-value">Admin</span>
+              <span className="receipt-label">Kasir:</span>
+              <span className="receipt-value">Verena</span>
             </div>
           </div>
           <div className="receipt-divider"></div>
@@ -1086,6 +1081,18 @@ function KasirGoContent({
           </div>
           <div className="receipt-divider-thick"></div>
           <div className="receipt-summary">
+            {selectedDiscount && (
+              <>
+                <div className="receipt-row">
+                  <span>Subtotal:</span>
+                  <span>{formatNumber(cart.reduce((acc, item) => acc + (item.price * item.quantity), 0))}</span>
+                </div>
+                <div className="receipt-row">
+                  <span>Diskon ({selectedDiscount.type === 'percent' ? `${selectedDiscount.value}%` : 'Nominal'}):</span>
+                  <span>-{formatNumber(cart.reduce((acc, item) => acc + (item.price * item.quantity), 0) - totalAmount)}</span>
+                </div>
+              </>
+            )}
             <div className="receipt-row font-bold">
               <span className="receipt-brand-large">TOTAL</span>
               <span className="receipt-brand-large">{formatNumber(totalAmount)}</span>
@@ -1105,8 +1112,8 @@ function KasirGoContent({
           </div>
           <div className="receipt-divider"></div>
           <div className="receipt-footer">
-            <div>Terima Kasih,</div>
-            <div>Ditunggu Kembali Kedatangannya!</div>
+            <div>Dukung UMKM Indonesia</div>
+            <div>Tulang Punggung Ekonomi Nasional</div>
           </div>
         </div>
 
