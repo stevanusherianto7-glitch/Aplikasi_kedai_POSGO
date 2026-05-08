@@ -134,6 +134,7 @@ function AppContent() {
     setIngredients,
     recipes,
     setRecipes,
+    products,
     employees,
     setEmployees,
     transactions,
@@ -260,7 +261,7 @@ function AppContent() {
         {activeTab === "kasirgo" && (
           <div className="min-h-full">
             <KasirGoPage 
-              recipes={recipes}
+              recipes={products}
               transactions={transactions}
               expenses={expenses}
               dailyIncomes={dailyIncomes}

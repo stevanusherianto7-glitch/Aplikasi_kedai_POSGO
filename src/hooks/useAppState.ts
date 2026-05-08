@@ -30,6 +30,7 @@ export function useAppState() {
   const [shifts, setShifts] = React.useState<Record<string, Record<string, ShiftType>>>({});
   const [weeklyPattern, setWeeklyPattern] = React.useState<Record<string, ShiftType[]>>({});
   const [promoEvents, setPromoEvents] = React.useState<PromoEvent[]>([]);
+  const [products, setProducts] = React.useState<Recipe[]>([]);
   const [isLoaded, setIsLoaded] = React.useState(false);
 
   const loadData = React.useCallback(async () => {
@@ -42,7 +43,7 @@ export function useAppState() {
            return data || [];
         };
 
-        const [ingD, recD, recItemsD, empD, txD, expD, assetD, logsD, attD, confD, incD, shiftD, promoD] = await Promise.all([
+        const [ingD, recD, recItemsD, empD, txD, expD, assetD, logsD, attD, confD, incD, shiftD, promoD, prodD] = await Promise.all([
           fetchTable('ingredients'),
           fetchTable('hpp_recipes'),
           fetchTable('recipe_items'),
@@ -55,7 +56,11 @@ export function useAppState() {
           fetchTable('app_config'),
           fetchTable('daily_incomes'), // Sesuai screenshot
           fetchTable('shifts'),
-          fetchTable('promo_events')
+          fetchTable('promo_events'),
+          supabase.from('products').select('*').eq('is_active', true).then(({data, error}) => {
+            if (error) console.warn("[SUPABASE] Error products:", error.message);
+            return data || [];
+          })
         ]);
 
         if (confD && Array.isArray(confD)) {
@@ -163,6 +168,15 @@ export function useAppState() {
           discountPercent: Number(p.discount_percent || 0),
           discountAmount: Number(p.discount_amount || 0),
           isActive: p.is_active
+        })));
+
+        setProducts((prodD || []).map((p: any) => ({
+          id: p.id,
+          name: p.name || 'Unnamed',
+          category: p.category || 'Makanan',
+          sellingPrice: Number(p.price || 0),
+          roundedSellingPrice: Number(p.price || 0),
+          items: []
         })));
       }
     } catch (e) { console.error("System Exception during State Load:", e); }
@@ -590,6 +604,6 @@ export function useAppState() {
     ingredients, setIngredients, recipes, setRecipes, employees, setEmployees, transactions, setTransactions, expenses, setExpenses, pettyCash, setPettyCash,
     isLoaded, loadData, deleteIngredient, deleteEmployee, handleBackup, handleRestore, handleAddIngredient, handleUpdateIngredient, handleAddExpense, handleDeleteExpense, handleSaveEmployee, handleProcessTransaction,
     handleAddRecipe, handleUpdateRecipe, handleDeleteRecipe, handleUpdateDailyIncome, handleDeleteDailyIncome, handleVoidTransaction, shifts, setShifts, handleUpdateShift, weeklyPattern, setWeeklyPattern, attendances, setAttendances,
-    toggleAttendance, theme, toggleTheme, isSyncing, dailyIncomes, restaurantAssets, setRestaurantAssets, maintenanceLogs, handleSaveAsset, handleDeleteAsset, handleAddMaintenance, isModalOpen, setIsModalOpen, promoEvents
+    toggleAttendance, theme, toggleTheme, isSyncing, dailyIncomes, restaurantAssets, setRestaurantAssets, maintenanceLogs, handleSaveAsset, handleDeleteAsset, handleAddMaintenance, isModalOpen, setIsModalOpen, promoEvents, products
   };
 }
