@@ -5,8 +5,9 @@ import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { RefreshCw, Printer, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Transaction } from '../types';
 
-export function PrinterSettings({ theme = 'light' }: { theme?: 'light' | 'dark' }) {
+export function PrinterSettings({ theme = 'light', currentTransaction }: { theme?: 'light' | 'dark', currentTransaction?: Transaction }) {
   const [devices, setDevices] = React.useState<any[]>([]);
   const [isScanning, setIsScanning] = React.useState(false);
   const [selectedAddress, setSelectedAddress] = React.useState<string | null>(
@@ -41,7 +42,7 @@ export function PrinterSettings({ theme = 'light' }: { theme?: 'light' | 'dark' 
     alert('Printer berhasil dipilih!');
   };
 
-  const testPrint = async () => {
+  const testPrint = async (type: string = 'customer') => {
     if (!selectedAddress) {
       alert('Pilih printer terlebih dahulu!');
       return;
@@ -56,7 +57,20 @@ export function PrinterSettings({ theme = 'light' }: { theme?: 'light' | 'dark' 
       ]
     };
     
-    const success = await BluetoothPrintService.printReceipt(dummyTransaction, selectedAddress);
+    // Prioritaskan transaksi yang aktif jika ada
+    const transactionToPrint = currentTransaction || dummyTransaction;
+    
+    // Modifikasi data berdasarkan tipe struk
+    let dataToPrint = { ...transactionToPrint };
+    if (type === 'kitchen') {
+      dataToPrint.isKitchen = true;
+      // Kosongkan harga untuk dapur
+      dataToPrint.items = dataToPrint.items.map((item: any) => ({ ...item, price: 0 }));
+    } else if (type === 'closing') {
+      dataToPrint.isClosing = true;
+    }
+    
+    const success = await BluetoothPrintService.printReceipt(dataToPrint, selectedAddress);
     if (!success) {
       alert('Gagal mencetak. Pastikan printer menyala dan terhubung.');
     }
@@ -143,12 +157,35 @@ export function PrinterSettings({ theme = 'light' }: { theme?: 'light' | 'dark' 
                 <CheckCircle2 className="w-4 h-4" />
                 <span className="text-[10px] font-bold uppercase tracking-widest">Printer Aktif</span>
              </div>
-             <Button 
-               onClick={testPrint}
-               className="w-full h-12 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
-             >
-               Test Print Struk
-             </Button>
+             {currentTransaction ? (
+               <div className="grid grid-cols-1 gap-2">
+                 <Button 
+                   onClick={() => testPrint('customer')}
+                   className="w-full h-12 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+                 >
+                   Print Struk Customer
+                 </Button>
+                 <Button 
+                   onClick={() => testPrint('kitchen')}
+                   className="w-full h-12 bg-orange-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+                 >
+                   Print Order Dapur (Kitchen)
+                 </Button>
+                 <Button 
+                   onClick={() => testPrint('closing')}
+                   className="w-full h-12 bg-blue-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+                 >
+                   Print Laporan Closing
+                 </Button>
+               </div>
+             ) : (
+               <Button 
+                 onClick={() => testPrint('customer')}
+                 className="w-full h-12 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+               >
+                 Test Print Struk
+               </Button>
+             )}
           </div>
         )}
       </Card>
