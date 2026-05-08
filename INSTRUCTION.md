@@ -465,9 +465,27 @@ Folder `android/` dan `ios/` adalah hasil generate Capacitor dan dikelola via `n
 ### RULE 12 — Selalu Jalankan `npx cap sync` Setelah Build
 Setiap kali ada perubahan kode yang akan di-deploy ke mobile, alurnya wajib: `npm run build` → `npx cap sync`. Jangan langsung buka Android Studio / Xcode tanpa sync terlebih dahulu, karena web assets yang tertanam di native project akan ketinggalan.
 
+### RULE 13 — Jujur: Jangan Klaim Sudah Melakukan Sesuatu Jika Belum
+Ini adalah aturan integritas kerja yang paling mendasar.
+
+**Dilarang keras:**
+- Bilang *"sudah saya perbaiki"* padahal hanya menjelaskan caranya
+- Bilang *"kode sudah diupdate"* padahal hanya menampilkan cuplikan kode tanpa benar-benar mengeditnya
+- Bilang *"bug sudah teratasi"* sebelum ada verifikasi nyata
+- Bilang *"sudah saya tambahkan ke file"* padahal file belum disentuh
+- Menyembunyikan ketidakmampuan mengakses file dengan jawaban ambigu
+
+**Yang wajib dilakukan:**
+- Jika hanya memberikan panduan/instruksi → katakan *"Berikut cara memperbaikinya, silakan terapkan di file..."*
+- Jika sudah benar-benar mengedit file → katakan *"Saya sudah mengubah baris X di file Y"* dan tunjukkan diff-nya
+- Jika tidak bisa mengakses atau mengedit file → katakan terus terang *"Saya tidak bisa langsung mengedit file ini, berikut kodenya untuk kamu terapkan sendiri"*
+- Jika belum yakin fix-nya benar → katakan *"Ini solusi yang saya usulkan, perlu ditest terlebih dahulu"*
+
+> **Kepercayaan tim dibangun dari kejujuran, bukan dari laporan palsu. Satu klaim bohong merusak seluruh sesi kerja.**
+
 ---
 
-# 🤖 PETUNJUK KHUSUS UNTUK AGEN AI
+## 🤖 PETUNJUK KHUSUS UNTUK AGEN AI
 
 Bagian ini **wajib dibaca** sebelum melakukan perubahan apapun pada kodebase.
 
@@ -587,6 +605,43 @@ Saat diminta menambah fitur baru yang melibatkan data persisten:
 
 ---
 
+## 🚨 Integritas & Kejujuran dalam Coding
+
+Ini adalah standar perilaku yang **tidak bisa dikompromikan**. Agen AI yang bekerja di proyek ini wajib jujur tentang apa yang sudah dan belum dilakukan.
+
+### Status yang Wajib Digunakan Secara Tepat
+
+| Situasi | Kalimat yang BENAR | Kalimat yang DILARANG |
+|---|---|---|
+| Menampilkan contoh kode tanpa mengedit file | *"Berikut kode yang perlu kamu tambahkan ke `X.ts`..."* | *"Sudah saya tambahkan ke `X.ts`"* |
+| Menjelaskan solusi tanpa mengeksekusi | *"Cara memperbaikinya adalah..."* | *"Sudah saya perbaiki"* |
+| Memberikan instruksi manual | *"Jalankan perintah ini di terminal kamu..."* | *"Sudah saya jalankan"* |
+| Fix yang belum diverifikasi | *"Coba solusi ini, perlu ditest dulu"* | *"Bug sudah teratasi"* |
+| Tidak bisa akses file | *"Saya tidak bisa buka file itu, tapi berikut panduannya..."* | *(jawaban ambigu tanpa pengakuan)* |
+
+### Aturan Pelaporan Perubahan Kode
+
+Setiap kali agen AI mengklaim telah mengubah kode, wajib menyertakan:
+
+```
+File    : src/path/ke/file.ts
+Baris   : 42-48 (sebelum) → 42-51 (sesudah)
+Perubahan: [deskripsi singkat apa yang diubah]
+```
+
+Jika tidak bisa menampilkan bukti perubahan seperti di atas, berarti perubahan **belum terjadi** dan harus diakui demikian.
+
+### Mengapa Ini Penting
+
+Bug yang dilaporkan "sudah fixed" padahal belum akan:
+- Membuang waktu debugging di tempat yang salah
+- Membuat deployment produksi rusak
+- Menghancurkan kepercayaan antara developer dan AI agent
+
+> **Lebih baik jujur "belum bisa" daripada bohong "sudah selesai".**
+
+---
+
 ## Konteks Bisnis Penting
 
 - Semua nilai uang dalam **Rupiah (IDR)**, tanpa desimal (integer).
@@ -598,5 +653,7 @@ Saat diminta menambah fitur baru yang melibatkan data persisten:
 - Kategori pengeluaran: `'Operasional' | 'Bahan Baku' | 'Gaji' | 'Lainnya'`.
 
 ---
+
+*Dokumen ini harus diperbarui setiap kali ada perubahan arsitektur, tabel database baru, atau library baru yang ditambahkan.*
 
 **Versi dokumen: 1.0.0 | Terakhir diperbarui: Mei 2026**

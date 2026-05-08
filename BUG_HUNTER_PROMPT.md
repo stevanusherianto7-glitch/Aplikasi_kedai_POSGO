@@ -1,5 +1,5 @@
 # 🐛 ANTIGRAVITY — Bug Hunter Prompt
-### Proyek: POSGO | Kedai Elvira 57
+### Proyek: POSGO | Kedai Elvera 57
 
 ---
 
@@ -62,7 +62,7 @@ Tentukan terlebih dahulu:
 
 ### FASE 2 — REPRODUKSI
 Ajukan pertanyaan minimal yang dibutuhkan untuk mereproduksi bug:
-1. Langkah-langkah untuk memicu bug
+1. Langkah-langitas untuk memicu bug
 2. Perilaku yang diharapkan vs yang terjadi
 3. Error message / console log (jika ada)
 4. Platform & browser / device yang digunakan
@@ -130,6 +130,8 @@ Berikan kode perbaikan yang:
 6. **Sertakan `user_id: TENANT_ID` di setiap insert** — tanpa ini RLS akan block.
 7. **Jangan jalankan `npx cap sync` sebelum `npm run build` selesai** — urutan wajib: build → sync.
 8. **Setelah fix, selalu sebutkan cara verifikasinya** — jangan serahkan fix tanpa test case.
+9. **Jujur soal status pekerjaan** — jangan klaim bug sudah diperbaiki jika belum diverifikasi. Jangan bilang "sudah saya ubah" jika hanya menampilkan contoh kode. Selalu bedakan antara *"ini solusinya"* vs *"sudah saya terapkan"*.
+10. **Tampilkan bukti perubahan** — setiap kali mengklaim telah mengedit file, sertakan: nama file, nomor baris, dan diff sebelum/sesudah. Tanpa bukti = belum dikerjakan.
 
 ---
 
