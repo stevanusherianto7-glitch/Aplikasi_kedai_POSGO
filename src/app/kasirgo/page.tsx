@@ -915,7 +915,7 @@ function KasirGoContent({
         {/* CUSTOMER RECEIPT */}
         <div id="receipt-customer" className="receipt-container">
           <div className="receipt-header">
-            <div className="receipt-brand-large">KASIRGO</div>
+            <div className="receipt-brand-large">Kedai Elvera 57</div>
             <div className="receipt-address">Jl. Pertanian No. 57</div>
             <div className="receipt-address">Lebak Bulus, Jakarta Selatan</div>
             <div className="receipt-address">WA: 0812-3456-7890</div>
@@ -989,7 +989,7 @@ function KasirGoContent({
         {/* CLOSING REPORT */}
         <div id="report-closing" className="receipt-container">
           <div className="receipt-header">
-            <div className="receipt-brand-large">KASIRGO</div>
+            <div className="receipt-brand-large">Kedai Elvera 57</div>
             <div className="receipt-address">Jl. Pertanian No. 57</div>
             <div className="receipt-address">Lebak Bulus, Jakarta Selatan</div>
           </div>

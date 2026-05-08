@@ -57,10 +57,8 @@ export class BluetoothPrintService {
       let commands = INITIALIZE;
       
       // Header
-      commands += ALIGN_CENTER + BOLD_ON + DOUBLE_SIZE + 'POSGO 57' + LINE_FEED;
-      commands += NORMAL_SIZE + 'Kedai Pawon Salam' + LINE_FEED;
-      commands += 'Jl. Contoh No. 123, Kota' + LINE_FEED;
-      commands += '--------------------------------' + LINE_FEED;
+      commands += ALIGN_CENTER + BOLD_ON + DOUBLE_SIZE + 'KEDAI ELVERA 57' + LINE_FEED;
+      commands += NORMAL_SIZE + '--------------------------------' + LINE_FEED;
       
       // Info Transaksi
       commands += ALIGN_LEFT + BOLD_OFF;
