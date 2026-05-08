@@ -375,22 +375,44 @@ export function useAppState() {
           alert("Gagal simpan ke cloud: " + error.message);
         } else {
           loadData();
+          
+          // == INTEGRASI PRINTER (Baru) ==
+          try {
+            const { data: receiptData, error: receiptErr } = await supabase.from('receipts').insert([{
+              source_type: 'transaction',
+              source_id: ft.id,
+              print_status: 'pending'
+            }]).select();
+
+            if (!receiptErr && receiptData?.[0]) {
+              await supabase.from('receipt_print_jobs').insert([{
+                receipt_id: receiptData[0].id,
+                job_status: 'queued',
+                payload: ft // Data transaksi lengkap untuk dicetak
+              }]);
+              console.log("[PRINT] Berhasil memasukkan antrean cetak.");
+            } else if (receiptErr) {
+              console.error("[PRINT] Gagal insert ke receipts:", receiptErr.message);
+            }
+          } catch (err) {
+            console.error("[PRINT] Gagal membuat antrean cetak:", err);
+          }
         }
       } catch (e) {
         console.error("[SUPABASE] Critical Transaction Error:", e);
       }
 
-      // AUTO PRINT RECEIPT
-      try {
-        const printerAddress = localStorage.getItem('printer_address');
-        if (printerAddress) {
-          await BluetoothPrintService.printReceipt(ft, printerAddress);
-        } else {
-          console.log("[PRINT] No printer address found in localStorage. Please set it in settings.");
-        }
-      } catch (printErr) {
-        console.error("[PRINT] Auto print failed:", printErr);
-      }
+      // AUTO PRINT RECEIPT (Dinonaktifkan agar tidak crash saat menggunakan mock printer)
+      // try {
+      //   const printerAddress = localStorage.getItem('printer_address');
+      //   if (printerAddress) {
+      //     await BluetoothPrintService.printReceipt(ft, printerAddress);
+      //   } else {
+      //     console.log("[PRINT] No printer address found in localStorage. Please set it in settings.");
+      //   }
+      // } catch (printErr) {
+      //   console.error("[PRINT] Auto print failed:", printErr);
+      // }
     }
     return ft;
   };
@@ -568,6 +590,6 @@ export function useAppState() {
     ingredients, setIngredients, recipes, setRecipes, employees, setEmployees, transactions, setTransactions, expenses, setExpenses, pettyCash, setPettyCash,
     isLoaded, loadData, deleteIngredient, deleteEmployee, handleBackup, handleRestore, handleAddIngredient, handleUpdateIngredient, handleAddExpense, handleDeleteExpense, handleSaveEmployee, handleProcessTransaction,
     handleAddRecipe, handleUpdateRecipe, handleDeleteRecipe, handleUpdateDailyIncome, handleDeleteDailyIncome, handleVoidTransaction, shifts, setShifts, handleUpdateShift, weeklyPattern, setWeeklyPattern, attendances, setAttendances,
-    toggleAttendance, theme, toggleTheme, isSyncing, dailyIncomes, restaurantAssets, setRestaurantAssets, maintenanceLogs, handleSaveAsset, handleDeleteAsset, handleAddMaintenance, isModalOpen, setIsModalOpen
+    toggleAttendance, theme, toggleTheme, isSyncing, dailyIncomes, restaurantAssets, setRestaurantAssets, maintenanceLogs, handleSaveAsset, handleDeleteAsset, handleAddMaintenance, isModalOpen, setIsModalOpen, promoEvents
   };
 }

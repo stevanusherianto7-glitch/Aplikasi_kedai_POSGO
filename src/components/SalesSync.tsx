@@ -10,7 +10,7 @@ import {
   PlusCircle,
   MinusCircle
 } from "lucide-react";
-import { Recipe, Ingredient, Transaction, TransactionItem } from "../types";
+import { Recipe, Ingredient, Transaction, TransactionItem, PromoEvent } from "../types";
 import { formatCurrency, cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { PrinterSettings } from "./PrinterSettings";
 
 interface SalesSyncProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ interface SalesSyncProps {
   recipes: Recipe[];
   ingredients: Ingredient[];
   onProcessTransaction: (transaction: Transaction) => void;
+  promoEvents: PromoEvent[];
 }
 
 export const SalesSync: React.FC<SalesSyncProps> = ({
@@ -38,11 +40,15 @@ export const SalesSync: React.FC<SalesSyncProps> = ({
   onClose,
   recipes,
   ingredients,
-  onProcessTransaction
+  onProcessTransaction,
+  promoEvents
 }) => {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [cart, setCart] = React.useState<TransactionItem[]>([]);
   const [paymentMethod, setPaymentMethod] = React.useState<'Tunai' | 'QRIS'>('Tunai');
+  const [currentTransactionToPrint, setCurrentTransactionToPrint] = React.useState<Transaction | null>(null);
+  const [promoModalOpen, setPromoModalOpen] = React.useState(false);
+  const [selectedDiscount, setSelectedDiscount] = React.useState<{ type: 'percent' | 'amount', value: number } | null>(null);
 
   const filteredRecipes = recipes.filter(r => 
     r.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -82,6 +88,12 @@ export const SalesSync: React.FC<SalesSyncProps> = ({
   };
 
   const totalSales = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  
+  const discountedTotal = selectedDiscount 
+    ? (selectedDiscount.type === 'percent' 
+        ? totalSales * (1 - selectedDiscount.value / 100) 
+        : Math.max(0, totalSales - selectedDiscount.value))
+    : totalSales;
 
   const handleSubmit = () => {
     if (cart.length === 0) return;
@@ -90,17 +102,18 @@ export const SalesSync: React.FC<SalesSyncProps> = ({
       id: crypto.randomUUID(),
       date: new Date().toISOString(),
       items: cart,
-      totalPrice: totalSales,
+      totalPrice: discountedTotal,
       totalHpp: 0, // Will be calculated in handleProcessTransaction
       paymentMethod
     };
 
     onProcessTransaction(transaction);
     setCart([]);
-    onClose();
+    setCurrentTransactionToPrint(transaction); // Buka modal printer
   };
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="w-[calc(100%-3rem)] sm:max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl rounded-[2rem]">
         <div className="flex flex-col lg:flex-row h-full">
@@ -244,9 +257,18 @@ export const SalesSync: React.FC<SalesSyncProps> = ({
                 </div>
               </div>
 
+              <Button 
+                variant="outline"
+                onClick={() => setPromoModalOpen(true)}
+                className="w-full h-12 border-emerald-500 text-emerald-600 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-emerald-50"
+              >
+                <TrendingUp className="w-4 h-4" />
+                {selectedDiscount ? `Diskon: ${selectedDiscount.type === 'percent' ? selectedDiscount.value + '%' : formatCurrency(selectedDiscount.value)}` : 'Pilih Promo / Diskon'}
+              </Button>
+
               <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-1">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Tagihan</p>
-                <p className="text-3xl font-black text-slate-900 tracking-tight">{formatCurrency(totalSales)}</p>
+                <p className="text-3xl font-black text-slate-900 tracking-tight">{formatCurrency(discountedTotal)}</p>
               </div>
 
               <Button 
@@ -262,5 +284,61 @@ export const SalesSync: React.FC<SalesSyncProps> = ({
         </div>
       </DialogContent>
     </Dialog>
+
+    <Dialog open={!!currentTransactionToPrint} onOpenChange={() => { setCurrentTransactionToPrint(null); onClose(); }}>
+      <DialogContent className="sm:max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white dark:bg-slate-900">
+        <div className="p-6">
+          <PrinterSettings currentTransaction={currentTransactionToPrint!} />
+          <div className="mt-4 flex justify-end px-6 pb-6">
+            <Button 
+              onClick={() => { setCurrentTransactionToPrint(null); onClose(); }}
+              className="h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+            >
+              Selesai & Tutup
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog open={promoModalOpen} onOpenChange={setPromoModalOpen}>
+      <DialogContent className="sm:max-w-md p-6 bg-white dark:bg-slate-900 rounded-[2rem] border-none">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">Pilih Promo / Diskon</DialogTitle>
+          <DialogDescription>Pilih promo yang berlaku untuk transaksi ini.</DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-1 gap-3 mt-4">
+          {promoEvents && promoEvents.filter(p => p.isActive).map(promo => (
+            <Button 
+              key={promo.id}
+              onClick={() => { 
+                setSelectedDiscount({ 
+                  type: promo.discountPercent > 0 ? 'percent' : 'amount', 
+                  value: promo.discountPercent > 0 ? promo.discountPercent : promo.discountAmount 
+                }); 
+                setPromoModalOpen(false); 
+              }}
+              className="h-14 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-none font-bold justify-start px-6 rounded-2xl"
+            >
+              <div className="flex flex-col items-start">
+                <span className="font-bold">{promo.name}</span>
+                <span className="text-xs text-emerald-600">
+                  {promo.discountPercent > 0 ? `Diskon ${promo.discountPercent}%` : `Potongan ${formatCurrency(promo.discountAmount)}`}
+                </span>
+              </div>
+            </Button>
+          ))}
+          
+          <Button 
+            onClick={() => { setSelectedDiscount(null); setPromoModalOpen(false); }}
+            variant="outline"
+            className="h-14 font-bold border-slate-200 rounded-2xl"
+          >
+            Tanpa Diskon / Reset
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };

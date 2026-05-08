@@ -14,7 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Ingredient, Transaction, Expense, Recipe } from "../types";
+import { Ingredient, Transaction, Expense, Recipe, PromoEvent } from "../types";
 import { formatCurrency } from "@/lib/utils";
 import { Logo } from "./Logo";
 import { SalesSync } from "./SalesSync";
@@ -30,6 +30,7 @@ interface DashboardProps {
   handleClosing: () => void;
   onTabChange: (tab: string) => void;
   onProcessTransaction: (transaction: Transaction) => void;
+  promoEvents: PromoEvent[];
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -41,7 +42,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   handleRestore,
   handleClosing,
   onTabChange,
-  onProcessTransaction
+  onProcessTransaction,
+  promoEvents
 }) => {
   const [isSalesSyncOpen, setIsSalesSyncOpen] = React.useState(false);
 
@@ -199,6 +201,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         recipes={recipes}
         ingredients={ingredients}
         onProcessTransaction={onProcessTransaction}
+        promoEvents={promoEvents}
       />
     </div>
   );

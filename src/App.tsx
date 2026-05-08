@@ -266,6 +266,7 @@ function AppContent() {
               dailyIncomes={dailyIncomes}
               pettyCash={pettyCash}
               onProcessTransaction={state.handleProcessTransaction}
+              promoEvents={state.promoEvents}
               onAddExpense={state.handleAddExpense}
               onDeleteExpense={state.handleDeleteExpense}
               onAddDailyIncome={state.handleUpdateDailyIncome}
