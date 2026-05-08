@@ -31,6 +31,7 @@ export function useAppState() {
   const [weeklyPattern, setWeeklyPattern] = React.useState<Record<string, ShiftType[]>>({});
   const [promoEvents, setPromoEvents] = React.useState<PromoEvent[]>([]);
   const [products, setProducts] = React.useState<Recipe[]>([]);
+  const [paymentMethods, setPaymentMethods] = React.useState<any[]>([]);
   const [isLoaded, setIsLoaded] = React.useState(false);
 
   const loadData = React.useCallback(async () => {
@@ -43,7 +44,7 @@ export function useAppState() {
            return data || [];
         };
 
-        const [ingD, recD, recItemsD, empD, txD, expD, assetD, logsD, attD, confD, incD, shiftD, promoD, prodD] = await Promise.all([
+        const [ingD, recD, recItemsD, empD, txD, expD, assetD, logsD, attD, confD, incD, shiftD, promoD, payD, prodD] = await Promise.all([
           fetchTable('ingredients'),
           fetchTable('hpp_recipes'),
           fetchTable('recipe_items'),
@@ -57,6 +58,7 @@ export function useAppState() {
           fetchTable('daily_incomes'), // Sesuai screenshot
           fetchTable('shifts'),
           fetchTable('promo_events'),
+          fetchTable('cash_payment_methods'),
           supabase.from('products').select('*').eq('is_active', true).then(({data, error}) => {
             if (error) console.warn("[SUPABASE] Error products:", error.message);
             return data || [];
@@ -170,6 +172,12 @@ export function useAppState() {
           isActive: p.is_active
         })));
 
+        setPaymentMethods((payD || []).map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          isActive: p.is_active
+        })));
+
         setProducts((prodD || []).map((p: any) => ({
           id: p.id,
           name: p.name || 'Unnamed',
@@ -196,7 +204,7 @@ export function useAppState() {
   const toggleTheme = () => {
     const n = theme === 'light' ? 'dark' : 'light';
     setTheme(n);
-    if (supabase) supabase.from('app_config').upsert({ id: 'theme', value: n });
+    if (supabase) supabase.from('app_config').upsert({ id: 'theme', value: n, user_id: DEFAULT_USER_ID });
   };
 
   const handleAddIngredient = async (i: Partial<Ingredient>, cb?: (v: boolean) => void) => {
@@ -390,19 +398,84 @@ export function useAppState() {
         } else {
           loadData();
           
+          // == OTOMATISASI PENCATATAN PENDAPATAN ==
+          try {
+            const description = `Penjualan Order #${ft.orderNumber}`;
+            
+            await Promise.all([
+              // 1. Insert ke omset_harian (Ada user_id)
+              supabase.from('omset_harian').insert([{
+                id: generateId(),
+                description: description,
+                amount: ft.totalPrice,
+                category: 'Pemasukan',
+                user_id: DEFAULT_USER_ID
+              }]),
+              
+              // 2. Insert ke incomes (Tidak ada user_id di skema, amount bigint)
+              supabase.from('incomes').insert([{
+                id: generateId(),
+                description: description,
+                amount: Math.round(ft.totalPrice),
+                category: 'PENJUALAN',
+                date: now.toISOString().slice(0, 10)
+              }])
+            ]);
+            console.log("[AUTO-INCOME] Berhasil mencatat ke incomes dan omset_harian.");
+          } catch (incomeErr) {
+            console.error("[AUTO-INCOME] Gagal mencatat pendapatan:", incomeErr);
+          }
+
+          // == OTOMATISASI POTONG STOK BAHAN BAKU ==
+          try {
+            const usedIngredients: Record<string, number> = {};
+            
+            // 1. Hitung total bahan yang terpakai
+            ft.items.forEach(item => {
+              const recipe = recipes.find(r => r.id === item.recipeId);
+              if (recipe && recipe.items) {
+                recipe.items.forEach(ri => {
+                  const qty = item.quantity * ri.quantityNeeded;
+                  usedIngredients[ri.ingredientId] = (usedIngredients[ri.ingredientId] || 0) + qty;
+                });
+              }
+            });
+
+            // 2. Update stok di DB dan State
+            const updatePromises = Object.entries(usedIngredients).map(async ([ingId, usedQty]) => {
+              const ing = ingredients.find(i => i.id === ingId);
+              if (ing) {
+                const newStock = ing.stockQuantity - usedQty;
+                
+                // Update local state
+                setIngredients(prev => prev.map(i => i.id === ingId ? { ...i, stockQuantity: newStock } : i));
+                
+                // Update DB
+                return supabase.from('ingredients').update({ stock_quantity: newStock }).eq('id', ingId);
+              }
+            });
+
+            await Promise.all(updatePromises);
+            console.log("[AUTO-STOCK] Berhasil memotong stok bahan baku.");
+          } catch (stockErr) {
+            console.error("[AUTO-STOCK] Gagal memotong stok:", stockErr);
+          }
+          
           // == INTEGRASI PRINTER (Baru) ==
           try {
             const { data: receiptData, error: receiptErr } = await supabase.from('receipts').insert([{
               source_type: 'transaction',
               source_id: ft.id,
-              print_status: 'pending'
+              print_status: 'pending',
+              user_id: DEFAULT_USER_ID
             }]).select();
 
             if (!receiptErr && receiptData?.[0]) {
               await supabase.from('receipt_print_jobs').insert([{
                 receipt_id: receiptData[0].id,
                 job_status: 'queued',
-                payload: ft // Data transaksi lengkap untuk dicetak
+                payload: ft, // Data transaksi lengkap untuk dicetak
+                user_id: DEFAULT_USER_ID
               }]);
               console.log("[PRINT] Berhasil memasukkan antrean cetak.");
             } else if (receiptErr) {
@@ -574,9 +647,9 @@ export function useAppState() {
 
   const handleAddMaintenance = async (l: any, a: RestaurantAsset) => {
     if (supabase) {
-      const { error } = await supabase.from('maintenance_logs').insert([l]);
+      const { error } = await supabase.from('maintenance_logs').insert([{ ...l, user_id: DEFAULT_USER_ID }]);
       if (!error) {
-        setMaintenanceLogs(prev => [l, ...prev]);
+        setMaintenanceLogs(prev => [{ ...l, user_id: DEFAULT_USER_ID }, ...prev]);
       }
     }
   };
@@ -604,6 +677,6 @@ export function useAppState() {
     ingredients, setIngredients, recipes, setRecipes, employees, setEmployees, transactions, setTransactions, expenses, setExpenses, pettyCash, setPettyCash,
     isLoaded, loadData, deleteIngredient, deleteEmployee, handleBackup, handleRestore, handleAddIngredient, handleUpdateIngredient, handleAddExpense, handleDeleteExpense, handleSaveEmployee, handleProcessTransaction,
     handleAddRecipe, handleUpdateRecipe, handleDeleteRecipe, handleUpdateDailyIncome, handleDeleteDailyIncome, handleVoidTransaction, shifts, setShifts, handleUpdateShift, weeklyPattern, setWeeklyPattern, attendances, setAttendances,
-    toggleAttendance, theme, toggleTheme, isSyncing, dailyIncomes, restaurantAssets, setRestaurantAssets, maintenanceLogs, handleSaveAsset, handleDeleteAsset, handleAddMaintenance, isModalOpen, setIsModalOpen, promoEvents, products
+    toggleAttendance, theme, toggleTheme, isSyncing, dailyIncomes, restaurantAssets, setRestaurantAssets, maintenanceLogs, handleSaveAsset, handleDeleteAsset, handleAddMaintenance, isModalOpen, setIsModalOpen, promoEvents, products, paymentMethods
   };
 }
