@@ -9,10 +9,17 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onBack, onToggleSettings }) => {
+  const [currentTime, setCurrentTime] = React.useState(new Date());
+  
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
       <div className="max-w-6xl mx-auto px-6 py-4">
-        {/* BARIS ATAS: Tombol Back, Judul, Gear */}
+        {/* BARIS ATAS: Tombol Back, Judul, Jam, Gear */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <button 
@@ -30,13 +37,20 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onBack,
             </h1>
           </div>
 
-          <button
-            onClick={onToggleSettings}
-            className="p-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors"
-            title="Pengaturan Menu"
-          >
-            <Settings size={20} />
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Jam Aktif (Font Kalkulator) */}
+            <div className="px-3 py-1.5 bg-slate-100 rounded-lg font-mono text-xs font-black text-slate-700 shadow-inner">
+              {currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </div>
+
+            <button
+              onClick={onToggleSettings}
+              className="p-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors"
+              title="Pengaturan Menu"
+            >
+              <Settings size={20} />
+            </button>
+          </div>
         </div>
 
         {/* BARIS BAWAH: 4 Kotak Menu */}
