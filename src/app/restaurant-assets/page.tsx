@@ -2,13 +2,13 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
-  Plus, Trash2, Minus, Package, DollarSign,
+  Plus, Trash2, Package, DollarSign,
   FileDown, Pencil, Check, Save, Download, Wallet,
   Search, Filter, ChevronDown, ChevronUp, History,
-  TrendingUp, AlertCircle, MapPin, Activity, LayoutDashboard,
-  Calendar, ArrowRight, ArrowLeft, RefreshCw, X
+  TrendingUp, AlertCircle, Activity, LayoutDashboard,
+  Calendar, RefreshCw, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../../lib/supabase';
@@ -35,7 +35,6 @@ interface MaintenanceLog {
 }
 
 const CATEGORIES = ['Dapur', 'Elektronik', 'Furniture', 'Alat Makan', 'Dekorasi', 'Lainnya'];
-const LOCATIONS = ['Area Makan', 'Dapur Utama', 'Gudang', 'Kasir', 'Luar'];
 
 interface RestaurantAssetsPageProps {
   theme?: 'light' | 'dark';
@@ -80,7 +79,7 @@ export default function RestaurantAssetsPage({
 
   // Form State
   const [newAsset, setNewAsset] = useState<Partial<Asset>>({
-    name: '', category: 'Dapur', quantity: 1, price: 0, condition: 'Bagus', location: 'Dapur Utama'
+    name: '', category: 'Dapur', quantity: 1, price: 0
   });
   const [newMaintenance, setNewMaintenance] = useState({ description: '', cost: '' });
 
@@ -96,14 +95,14 @@ export default function RestaurantAssetsPage({
   // Analytics
   const stats = useMemo(() => {
     const totalValue = (assets || []).reduce((sum, a) => sum + (a.price * a.quantity), 0);
-    const brokenCount = (assets || []).filter(a => a.condition === 'Rusak').length;
     const maintenanceCost = (maintenanceLogs || []).reduce((sum, l) => sum + l.cost, 0);
     const categoryDistribution = (assets || []).reduce((acc: any, a) => {
-      acc[a.category] = (acc[a.category] || 0) + 1;
+      acc[a.category] = (acc[a.category] || 0) + a.quantity;
       return acc;
     }, {});
+    const brokenCount = (assets || []).filter(a => a.status === 'broken').length;
 
-    return { totalValue, brokenCount, maintenanceCost, categoryDistribution };
+    return { totalValue, maintenanceCost, categoryDistribution, brokenCount };
   }, [assets, maintenanceLogs]);
 
   // Actions
@@ -114,7 +113,7 @@ export default function RestaurantAssetsPage({
     if ((result as any)?.success !== false) {
       setIsAddingAsset(false);
       setEditingAsset(null);
-      setNewAsset({ name: '', category: 'Dapur', quantity: 1, price: 0, condition: 'Bagus', location: 'Dapur Utama' });
+      setNewAsset({ name: '', category: 'Dapur', quantity: 1, price: 0 });
       alert('asset telah disimpan');
     } else {
       alert('GAGAL SIMPAN: ' + (result as any)?.message);
@@ -164,29 +163,18 @@ export default function RestaurantAssetsPage({
     doc.text('RINGKASAN ASET:', 20, 42);
     doc.setFont('helvetica', 'normal');
     doc.text(`Total Nilai Investasi: ${formatIDR(stats.totalValue)}`, 20, 50);
-    doc.text(`Jumlah Aset Rusak: ${stats.brokenCount} Item`, 100, 50);
-    doc.text(`Total Biaya Servis: ${formatIDR(stats.maintenanceCost)}`, 180, 50);
+    doc.text(`Total Biaya Servis: ${formatIDR(stats.maintenanceCost)}`, 140, 50);
 
     // Table
     autoTable(doc, {
       startY: 65,
-      head: [['Nama Barang', 'Kategori', 'Qty', 'Harga Satuan', 'Kondisi', 'Lokasi']],
+      head: [['Nama Barang', 'Kategori', 'Qty', 'Harga Satuan']],
       body: filteredAssets.map(a => [
-        a.name, a.category, a.quantity, formatIDR(a.price), a.condition, a.location
+        a.name, a.category, a.quantity, formatIDR(a.price)
       ]),
       theme: 'grid',
       headStyles: { fillColor: [31, 41, 55], textColor: 255, fontStyle: 'bold' },
       styles: { fontSize: 9, cellPadding: 3 },
-      columnStyles: {
-        4: { fontStyle: 'bold' }
-      },
-      didParseCell: (data) => {
-        if (data.section === 'body' && data.column.index === 4) {
-          const val = data.cell.raw;
-          if (val === 'Rusak') data.cell.styles.textColor = [220, 38, 38];
-          if (val === 'Servis') data.cell.styles.textColor = [217, 119, 6];
-        }
-      }
     });
 
     if (Capacitor.isNativePlatform()) {
@@ -310,13 +298,6 @@ export default function RestaurantAssetsPage({
                         <div className="space-y-0.5">
                           <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-[7px] font-black rounded-full uppercase tracking-tighter">{asset.category}</span>
                           <h3 className="text-xs font-black text-slate-800 uppercase line-clamp-1">{asset.name}</h3>
-                        </div>
-                        <div className={cn(
-                          "px-1.5 py-0.5 rounded-full text-[7px] font-black uppercase",
-                          asset.condition === 'Bagus' ? "bg-emerald-50 text-emerald-600" :
-                          asset.condition === 'Rusak' ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-600"
-                        )}>
-                          {asset.condition}
                         </div>
                       </div>
 

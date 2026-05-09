@@ -88,6 +88,8 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
   const [activeManagerTab, setActiveManagerTab] = React.useState<'main' | 'bahan' | 'hpp' | 'resep'>('main');
   const [viewMode, setViewMode] = React.useState<'menu-list' | 'ingredient-list' | 'stock-opname'>('ingredient-list');
   const [selectedRecipeId, setSelectedRecipeId] = React.useState<string | null>(null);
+  const [filterCategory, setFilterCategory] = React.useState<string>('all');
+  const [filterUnit, setFilterUnit] = React.useState<string>('all');
 
   // Sync isHppDetailOpen to parent via onModalToggle
   React.useEffect(() => {
@@ -198,10 +200,14 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
   };
 
   const selectedRecipe = recipes.find(r => r.id === selectedRecipeId);
-  
-  const filteredIngredients = selectedRecipeId 
+
+  const filteredIngredients = selectedRecipeId
     ? ingredients.filter(ing => (selectedRecipe?.items || []).some(item => item.ingredientId === ing.id))
-    : ingredients;
+    : ingredients.filter(ing => {
+        const categoryMatch = filterCategory === 'all' || ing.category === filterCategory;
+        const unitMatch = filterUnit === 'all' || ing.purchaseUnit === filterUnit || ing.useUnit === filterUnit;
+        return categoryMatch && unitMatch;
+      });
 
   return (
     <div className={cn(
@@ -440,8 +446,71 @@ export const BahanManager: React.FC<BahanManagerProps> = ({
             exit={{ opacity: 0, y: -10 }}
             className="w-full"
           >
+            {/* Filter Dropdowns */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              <div className="flex-1">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 block mb-2">Filter Kategori</label>
+                <div className="relative group">
+                  <select
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    className="w-full h-10 rounded-xl border-slate-200 bg-white px-3 text-[10px] font-bold text-slate-900 outline-none appearance-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer shadow-sm"
+                  >
+                    <option value="all">Semua Kategori</option>
+                    {CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <ChevronDown size={14} />
+                  </div>
+                </div>
+              </div>
+              <div className="flex-1">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 block mb-2">Filter Satuan</label>
+                <div className="relative group">
+                  <select
+                    value={filterUnit}
+                    onChange={(e) => setFilterUnit(e.target.value)}
+                    className="w-full h-10 rounded-xl border-slate-200 bg-white px-3 text-[10px] font-bold text-slate-900 outline-none appearance-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer shadow-sm"
+                  >
+                    <option value="all">Semua Satuan</option>
+                    {UNITS.map(unit => (
+                      <option key={unit} value={unit}>{unit.toUpperCase()}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <ChevronDown size={14} />
+                  </div>
+                </div>
+              </div>
+              <div className="sm:flex-[0.3] flex items-end">
+                {(filterCategory !== 'all' || filterUnit !== 'all') && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setFilterCategory('all');
+                      setFilterUnit('all');
+                    }}
+                    className="w-full h-10 rounded-xl text-[9px] font-bold uppercase tracking-widest text-rose-600 border-rose-200 hover:bg-rose-50"
+                  >
+                    Reset Filter
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {(filterCategory !== 'all' || filterUnit !== 'all') && (
+              <div className="mb-3 p-2.5 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-between">
+                <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider">
+                  Menampilkan {filteredIngredients.length} dari {ingredients.length} bahan
+                </span>
+              </div>
+            )}
+
             <IngredientList
-              ingredients={ingredients}
+              ingredients={filteredIngredients}
               setEditingIngredient={setEditingIngredient}
               setIsEditingIngredient={setIsEditingIngredient}
               setSelectedIngredientForStock={setSelectedIngredientForStock}

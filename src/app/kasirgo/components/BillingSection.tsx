@@ -31,7 +31,7 @@ export const BillingSection: React.FC<BillingSectionProps> = (props) => {
     cart, totalAmount, paymentMethod, setPaymentMethod, cashReceivedDisplay, change,
     customerName, customerWA, setCart, setIsBillingOpen, setCashReceivedDisplay,
     setCashReceived, setCustomerName, setCustomerWA, handleCheckout, removeFromCart,
-    formatInputNumber, parseInputNumber, setPromoModalOpen
+    formatInputNumber, parseInputNumber, setPromoModalOpen, paymentMethods
   } = props;
   return (
     <div className="bg-white rounded-[2rem] shadow-2xl md:shadow-lg border border-slate-200 p-4 md:p-6 md:sticky md:top-4 h-full md:h-auto overflow-y-auto scrolling-touch touch-auto max-w-sm mx-auto w-full pb-8">
@@ -98,7 +98,7 @@ export const BillingSection: React.FC<BillingSectionProps> = (props) => {
               <button 
                 key={p.id}
                 onClick={() => setPaymentMethod(p.name as any)}
-                className={`min-h-[40px] md:min-h-[50px] rounded-xl flex flex-col items-center justify-center gap-0.5 md:gap-1 text-[9px] md:text-[10px] font-bold border transition-all duration-300 active:scale-95 ${paymentMethod === p.name ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white border-transparent shadow-lg shadow-blue-900/30 scale-[1.02]' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:bg-slate-50'}`}
+                className={`min-h-[44px] md:min-h-[50px] rounded-xl flex flex-col items-center justify-center gap-0.5 md:gap-1 text-[9px] md:text-[10px] font-bold border transition-all duration-300 active:scale-95 ${paymentMethod === p.name ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white border-transparent shadow-lg shadow-blue-900/30 scale-[1.02]' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:bg-slate-50'}`}
               >
                 {p.name === 'Tunai' ? <Wallet size={16}/> : p.name === 'QRIS' ? <QrCode size={16}/> : <CreditCard size={16}/>} {p.name.toUpperCase()}
               </button>

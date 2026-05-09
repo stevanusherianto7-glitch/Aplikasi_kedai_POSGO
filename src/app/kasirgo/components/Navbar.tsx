@@ -26,6 +26,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onBack,
               onClick={() => onBack ? onBack() : window.history.back()}
               className="p-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors"
               title="Kembali"
+              aria-label="Kembali ke halaman sebelumnya"
             >
               <ArrowLeft size={20} />
             </button>
@@ -47,6 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onBack,
               onClick={onToggleSettings}
               className="p-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors"
               title="Pengaturan Menu"
+              aria-label="Buka pengaturan menu"
             >
               <Settings size={20} />
             </button>

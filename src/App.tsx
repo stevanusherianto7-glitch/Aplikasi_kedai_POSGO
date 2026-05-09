@@ -27,8 +27,8 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
     super(props);
     this.state = { hasError: false, error: null };
   }
-  static getDerivedStateFromError(error: any) { return { hasError: true, error }; }
-  componentDidCatch(error: any, errorInfo: any) { console.error("ErrorBoundary caught an error", error, errorInfo); }
+  static getDerivedStateFromError(error: unknown) { return { hasError: true, error }; }
+  componentDidCatch(error: unknown, errorInfo: unknown) { /* Error logged to state */ }
   render() {
     if (this.state.hasError) {
       return (
@@ -104,12 +104,11 @@ export default function App() {
     `;
     document.head.appendChild(style);
 
-    window.onerror = (msg, url, line, col, error) => {
-      console.error("Global Error (Caught by App):", { msg, url, line, col, error });
+    window.onerror = (_msg, _url, _line, _col, _error) => {
       return false;
     };
-    window.onunhandledrejection = (event) => {
-      console.error("Unhandled Rejection (Caught by App):", event.reason);
+    window.onunhandledrejection = (_event) => {
+      return false;
     };
   }, []);
 

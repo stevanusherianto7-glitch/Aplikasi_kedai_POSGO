@@ -489,17 +489,40 @@ export function useAppState() {
         console.error("[SUPABASE] Critical Transaction Error:", e);
       }
 
-      // AUTO PRINT RECEIPT (Dinonaktifkan agar tidak crash saat menggunakan mock printer)
-      // try {
-      //   const printerAddress = localStorage.getItem('printer_address');
-      //   if (printerAddress) {
-      //     await BluetoothPrintService.printReceipt(ft, printerAddress);
-      //   } else {
-      //     console.log("[PRINT] No printer address found in localStorage. Please set it in settings.");
-      //   }
-      // } catch (printErr) {
-      //   console.error("[PRINT] Auto print failed:", printErr);
-      // }
+      // AUTO PRINT RECEIPT — Cetak struk pelanggan setelah transaksi berhasil
+      try {
+        const printerAddress = localStorage.getItem('printer_address');
+
+        if (!printerAddress) {
+          console.log('[PRINT] No printer address found in localStorage. Struk akan dicetak manual jika diperlukan.');
+          // Lanjutkan tanpa return agar fungsi bisa berlanjut ke penghapusan item
+        } else {
+          // Print customer receipt
+          const customerResult = await BluetoothPrintService.printReceipt(ft, printerAddress, 'customer');
+          if (customerResult) {
+            console.log('[PRINT] Customer receipt printed successfully.');
+          } else {
+            console.warn('[PRINT] Customer receipt print failed, but transaction saved.');
+          }
+
+          // Print kitchen receipt (opsional, dinonaktifkan secara default)
+          const shouldPrintKitchen = localStorage.getItem('print_kitchen') === 'true';
+          if (shouldPrintKitchen) {
+            const kitchenResult = await BluetoothPrintService.printReceipt(ft, printerAddress, 'kitchen');
+            if (kitchenResult) {
+              console.log('[PRINT] Kitchen ticket printed successfully.');
+            } else {
+              console.warn('[PRINT] Kitchen ticket print failed.');
+            }
+          }
+        }
+
+      } catch (printErr) {
+        // Transaksi sudah disimpan di database, hanya print yang gagal
+        console.error('[PRINT] Auto print error (transaction saved):', printErr);
+        // Tampilkan notifikasi ke user bahwa print gagal
+        // Bisa ditambahkan toast notification di sini jika diperlukan
+      }
     }
     return ft;
   };
