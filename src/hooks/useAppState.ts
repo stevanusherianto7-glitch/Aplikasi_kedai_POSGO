@@ -472,16 +472,14 @@ export function useAppState() {
             const { data: receiptData, error: receiptErr } = await supabase.from('receipts').insert([{
               source_type: 'transaction',
               source_id: ft.id,
-              print_status: 'pending',
-              user_id: DEFAULT_USER_ID
+              print_status: 'pending'
             }]).select();
 
             if (!receiptErr && receiptData?.[0]) {
               await supabase.from('receipt_print_jobs').insert([{
                 receipt_id: receiptData[0].id,
                 job_status: 'queued',
-                payload: ft, // Data transaksi lengkap untuk dicetak
-                user_id: DEFAULT_USER_ID
+                payload: ft // Data transaksi lengkap untuk dicetak
               }]);
               console.log("[PRINT] Berhasil memasukkan antrean cetak.");
             } else if (receiptErr) {
