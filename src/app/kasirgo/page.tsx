@@ -606,11 +606,143 @@ function KasirGoContent({
   };
 
   const handlePrint = async (elementId: string, filename: string) => {
+    if (filename === 'CUSTOMER_RECEIPT') {
+      try {
+        // Hitung tinggi dinamis: base height + (jumlah item * estimasi tinggi item)
+        const baseHeight = 90;
+        const itemHeight = cart.length * 8;
+        const calculatedHeight = baseHeight + itemHeight;
+        
+        const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: [58, calculatedHeight] });
+        const pw = doc.internal.pageSize.getWidth();
+        let y = 10;
+
+        // Header
+        doc.setFont('courier', 'bold').setFontSize(10);
+        doc.text('KEDAI ELVERA 57', pw / 2, y, { align: 'center' });
+        y += 4;
+        
+        doc.setFont('courier', 'normal').setFontSize(6);
+        doc.text('Jl. Pertanian No. 57', pw / 2, y, { align: 'center' });
+        y += 3;
+        doc.text('Lebak Bulus, Jakarta Selatan', pw / 2, y, { align: 'center' });
+        y += 3;
+        doc.text('WA: 0895-3763-48626', pw / 2, y, { align: 'center' });
+        y += 5;
+
+        doc.text(`Order #${String(currentOrderNumber).padStart(3, '0')}`, pw / 2, y, { align: 'center' });
+        y += 3;
+        
+        doc.setLineWidth(0.1).setDrawColor(150);
+        doc.line(2, y, pw - 2, y);
+        y += 4;
+
+        // Meta Info
+        doc.text(`Tgl: ${new Date().toLocaleDateString('id-ID')}`, 2, y);
+        y += 3;
+        doc.text(`Jam: ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`, 2, y);
+        y += 3;
+        doc.text(`Bill: ${formatTransactionNumber(new Date(), currentOrderNumber || 0)}`, 2, y);
+        y += 3;
+        doc.text(`Kasir: Verena`, 2, y);
+        y += 4;
+
+        doc.line(2, y, pw - 2, y);
+        y += 4;
+
+        // Table Header
+        doc.setFont('courier', 'bold');
+        doc.text('Transaksi', 2, y);
+        doc.text('Qty', 22, y);
+        doc.text('Harga', 30, y);
+        doc.text('Total', pw - 2, y, { align: 'right' });
+        y += 4;
+
+        doc.line(2, y, pw - 2, y);
+        y += 4;
+
+        // Items
+        doc.setFont('courier', 'normal');
+        cart.forEach(item => {
+          const nameLines = doc.splitTextToSize(item.name.toUpperCase(), 18);
+          doc.text(nameLines, 2, y);
+          doc.text(String(item.quantity), 22, y);
+          doc.text(formatNumber(item.price), 30, y);
+          doc.text(formatNumber(item.price * item.quantity), pw - 2, y, { align: 'right' });
+          y += Math.max(nameLines.length * 3, 4);
+          if (item.note) {
+            doc.text(`* ${item.note}`, 4, y);
+            y += 3;
+          }
+        });
+
+        doc.line(2, y, pw - 2, y);
+        y += 4;
+
+        // Summary
+        if (selectedDiscount) {
+          doc.text('Subtotal:', 2, y);
+          const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+          doc.text(formatNumber(subtotal), pw - 2, y, { align: 'right' });
+          y += 3;
+          
+          doc.text(`Diskon (${selectedDiscount.type === 'percent' ? `${selectedDiscount.value}%` : 'Nom' }):`, 2, y);
+          const discAmt = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0) - totalAmount;
+          doc.text(`-${formatNumber(discAmt)}`, pw - 2, y, { align: 'right' });
+          y += 3;
+        }
+
+        doc.setFont('courier', 'bold').setFontSize(8);
+        doc.text('TOTAL', 2, y);
+        doc.text(formatNumber(totalAmount), pw - 2, y, { align: 'right' });
+        y += 4;
+
+        doc.setFont('courier', 'normal').setFontSize(6);
+        doc.text('Metode Bayar:', 2, y);
+        doc.text(paymentMethod, pw - 2, y, { align: 'right' });
+        y += 3;
+
+        doc.text('Bayar:', 2, y);
+        doc.text(formatNumber(cashReceived || totalAmount), pw - 2, y, { align: 'right' });
+        y += 3;
+
+        doc.text('Kembali:', 2, y);
+        doc.text(formatNumber(change), pw - 2, y, { align: 'right' });
+        y += 5;
+
+        doc.line(2, y, pw - 2, y);
+        y += 4;
+
+        // Footer
+        doc.text('Dukung UMKM Indonesia', pw / 2, y, { align: 'center' });
+        y += 3;
+        doc.text('Tulang Punggung Ekonomi Nasional', pw / 2, y, { align: 'center' });
+
+        // Save
+        if (Capacitor.isNativePlatform()) {
+          const base64 = doc.output('datauristring').split(',')[1];
+          const { Filesystem, Directory } = await import('@capacitor/filesystem');
+          await Filesystem.writeFile({
+            path: `${filename}_${Date.now()}.pdf`,
+            data: base64,
+            directory: Directory.Documents
+          });
+          alert(`Berhasil! PDF tersimpan di folder Documents.`);
+        } else {
+          doc.save(`${filename}.pdf`);
+        }
+      } catch (e) {
+        console.error("Print Error:", e);
+        alert("Gagal mencetak struk.");
+      }
+      return;
+    }
+
+    // Fallback untuk Kitchen & Closing (Gunakan html2canvas yang sudah diperbaiki)
     const element = document.getElementById(elementId);
     if (!element) return;
 
     try {
-      // Small delay to ensure rendering
       await new Promise(r => setTimeout(r, 100));
 
       const canvas = await html2canvas(element, {
@@ -633,6 +765,7 @@ function KasirGoContent({
 
       if (Capacitor.isNativePlatform()) {
         const base64 = pdf.output('datauristring').split(',')[1];
+        const { Filesystem, Directory } = await import('@capacitor/filesystem');
         await Filesystem.writeFile({
           path: `${filename}_${Date.now()}.pdf`,
           data: base64,
