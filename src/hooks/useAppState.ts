@@ -31,7 +31,12 @@ export function useAppState() {
   const [weeklyPattern, setWeeklyPattern] = React.useState<Record<string, ShiftType[]>>({});
   const [promoEvents, setPromoEvents] = React.useState<PromoEvent[]>([]);
   const [products, setProducts] = React.useState<Recipe[]>([]);
-  const [paymentMethods, setPaymentMethods] = React.useState<any[]>([]);
+  const [paymentMethods, setPaymentMethods] = React.useState<any[]>([
+    { id: '1', name: 'Tunai', isActive: true },
+    { id: '2', name: 'QRIS', isActive: true },
+    { id: '3', name: 'Debet', isActive: true },
+    { id: '4', name: 'E-Wallet', isActive: true }
+  ]);
   const [isLoaded, setIsLoaded] = React.useState(false);
 
   const loadData = React.useCallback(async () => {
@@ -172,11 +177,12 @@ export function useAppState() {
           isActive: p.is_active
         })));
 
-        setPaymentMethods((payD || []).map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          isActive: p.is_active
-        })));
+        setPaymentMethods([
+          { id: '1', name: 'Tunai', isActive: true },
+          { id: '2', name: 'QRIS', isActive: true },
+          { id: '3', name: 'Debet', isActive: true },
+          { id: '4', name: 'E-Wallet', isActive: true }
+        ]);
 
         setProducts((prodD || []).map((p: any) => ({
           id: p.id,

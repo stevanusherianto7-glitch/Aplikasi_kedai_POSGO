@@ -23,9 +23,10 @@ import { supabase } from '../../lib/supabase';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import './kasirgo.css';
+import { BluetoothPrintService } from '../../services/bluetoothPrintService';
 
 // --- UTILS ---
-import { formatIDR, formatCurrency, formatNumber, parseNumber, generateId, cn } from '../../lib/utils';
+import { formatIDR, formatCurrency, formatNumber, parseNumber, generateId, cn, PrinterConfig, printReceipt, getPairedDevices } from '../../lib/utils';
 import { formatDate } from './utils/formatters';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -61,6 +62,120 @@ interface CartItem {
   isTakeAway?: boolean;
 }
 
+// --- ERROR BOUNDARY COMPONENTS ---
+interface ErrorFallbackProps {
+  error: Error;
+  context?: 'root' | 'billing' | 'modal' | 'cart' | 'checkout';
+  onRetry?: () => void;
+}
+
+const ErrorBoundaryFallback: React.FC<ErrorFallbackProps> = ({ error, context = 'root', onRetry }) => {
+  const getContextMessage = () => {
+    switch (context) {
+      case 'billing': return 'Sistem Pembayaran Bermasalah';
+      case 'modal': return 'Jendela Popup Bermasalah';
+      case 'cart': return 'Keranjang Belanja Bermasalah';
+      case 'checkout': return 'Proses Checkout Bermasalah';
+      default: return 'Modul Kasir Bermasalah';
+    }
+  };
+
+  const getContextDescription = () => {
+    switch (context) {
+      case 'billing': return 'Terjadi kesalahan pada sistem pembayaran. Mohon coba kembali atau gunakan metode pembayaran lain.';
+      case 'modal': return 'Jendela popup tidak dapat dimuat. Data tidak hilang, silakan muat ulang halaman.';
+      case 'cart': return 'Keranjang belanja mengalami gangguan. Data Anda aman, silakan muat ulang.';
+      case 'checkout': return 'Proses checkout gagal. Pastikan koneksi internet stabil dan coba lagi.';
+      default: return 'Terjadi kesalahan internal pada komponen KasirGo.';
+    }
+  };
+
+  const getErrorDetails = () => {
+    if (error?.stack) {
+      const match = error.stack.match(/at (\w+)/);
+      return match ? match[1] : 'Unknown';
+    }
+    return 'Unknown';
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
+      <div className="text-center space-y-4 max-w-sm">
+        <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+          <X size={32} />
+        </div>
+        <h1 className="text-xl font-black text-slate-800 uppercase">{getContextMessage()}</h1>
+        <p className="text-xs text-slate-500 font-bold leading-relaxed">{getContextDescription()}</p>
+
+        {error?.message && (
+          <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-left">
+            <p className="text-[10px] text-rose-700 font-bold">Error: {error.message}</p>
+            <p className="text-[9px] text-rose-600 mt-1">Komponen: {getErrorDetails()}</p>
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="flex-1 h-12 bg-slate-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest"
+            >
+              Coba Lagi
+            </button>
+          )}
+          <button
+            onClick={() => window.location.reload()}
+            className="flex-1 h-12 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest"
+          >
+            Muat Ulang
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+class KasirGoErrorBoundary extends React.Component<{
+  children: React.ReactNode;
+  context?: 'root' | 'billing' | 'modal' | 'cart' | 'checkout';
+  fallback?: React.ReactNode;
+}, { hasError: boolean; error: Error | null }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('KasirGo Error Boundary:', {
+      error,
+      errorInfo,
+      context: this.props.context || 'root'
+    });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+      return (
+        <ErrorBoundaryFallback
+          error={this.state.error || new Error('Unknown error')}
+          context={this.props.context}
+          onRetry={() => this.setState({ hasError: false, error: null })}
+        />
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// --- MAIN COMPONENTS ---
 interface KasirGoPageProps {
   recipes?: any[];
   transactions?: any[];
@@ -80,25 +195,21 @@ interface KasirGoPageProps {
   theme?: 'light' | 'dark';
   promoEvents?: any[];
   paymentMethods?: any[];
+  onModalToggle?: (isOpen: boolean) => void;
 }
 
 export default function KasirGoPage(props: KasirGoPageProps) {
+  // Pastikan onModalToggle diteruskan dengan benar
+  const safeProps = {
+    ...props,
+    onModalToggle: props.onModalToggle || (() => {})
+  };
+
   try {
-    return <KasirGoContent {...props} />;
+    return <KasirGoContent {...safeProps} />;
   } catch (e: any) {
     console.error("KasirGo Root Error:", e);
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
-        <div className="text-center space-y-4 max-w-sm">
-          <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto">
-            <X size={32} />
-          </div>
-          <h1 className="text-xl font-black text-slate-800 uppercase">Modul Kasir Bermasalah</h1>
-          <p className="text-xs text-slate-500 font-bold leading-relaxed">{e.message || 'Terjadi kesalahan internal pada komponen KasirGo.'}</p>
-          <button onClick={() => window.location.reload()} className="w-full h-12 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest">Muat Ulang Aplikasi</button>
-        </div>
-      </div>
-    );
+    return <ErrorBoundaryFallback error={e} context="root" />;
   }
 }
 
@@ -130,6 +241,13 @@ function KasirGoContent({
   const [filterMonth, setFilterMonth] = useState<string>(currentMonthStr);
   const [pengeluaranSubTab, setPengeluaranSubTab] = useState<'harian' | 'bulanan'>('harian');
   const [pemasukanSubTab, setPemasukanSubTab] = useState<'harian' | 'bulanan'>('harian');
+
+  // Sync filterMonth to current month when switching to bulanan mode
+  useEffect(() => {
+    if (pengeluaranSubTab === 'bulanan' || pemasukanSubTab === 'bulanan') {
+      setFilterMonth(currentMonthStr);
+    }
+  }, [pengeluaranSubTab, pemasukanSubTab, currentMonthStr]);
 
   // State
   const menuItems = useMemo(() => {
@@ -176,6 +294,14 @@ function KasirGoContent({
   const [customerName, setCustomerName] = useState('');
   const [customerWA, setCustomerWA] = useState('');
 
+  // Printer Configuration State
+  const [printerConfig, setPrinterConfig] = useState<PrinterConfig>({
+    enabled: localStorage.getItem('printerEnabled') === 'true',
+    autoPrint: localStorage.getItem('autoPrint') === 'true',
+    deviceAddress: localStorage.getItem('printerDeviceAddress') || undefined
+  });
+  const [availablePrinters, setAvailablePrinters] = useState<Array<{ id: string; name: string; address: string }>>([]);
+
   // Order Counter State
   const [currentOrderNumber, setCurrentOrderNumber] = useState<number | null>(null);
   const [searchHistory, setSearchHistory] = useState('');
@@ -187,6 +313,42 @@ function KasirGoContent({
     const maxOrder = Math.max(...transactions.map(t => Number(t.orderNumber) || 0));
     return maxOrder + 1;
   }, [transactions]);
+
+  // Load available printers on mount
+  useEffect(() => {
+    if (printerConfig.enabled) {
+      loadPrinters();
+    }
+  }, [printerConfig.enabled]);
+
+  const loadPrinters = async () => {
+    try {
+      const devices = await getPairedDevices();
+      const printers = devices.map(d => ({
+        id: d.id,
+        name: d.name,
+        address: d.address
+      }));
+      setAvailablePrinters(printers);
+    } catch (error) {
+      console.error('Failed to load printers:', error);
+    }
+  };
+
+  // Update printer config and persist to localStorage
+  const updatePrinterConfig = (updates: Partial<PrinterConfig>) => {
+    const newConfig = { ...printerConfig, ...updates };
+    setPrinterConfig(newConfig);
+    if (updates.enabled !== undefined) localStorage.setItem('printerEnabled', String(updates.enabled));
+    if (updates.autoPrint !== undefined) localStorage.setItem('autoPrint', String(updates.autoPrint));
+    if (updates.deviceAddress !== undefined) {
+      if (updates.deviceAddress) {
+        localStorage.setItem('printerDeviceAddress', updates.deviceAddress);
+      } else {
+        localStorage.removeItem('printerDeviceAddress');
+      }
+    }
+  };
 
   // Editing existing menu state
   const [editingRecipeId, setEditingRecipeId] = useState<string | null>(null);
@@ -283,6 +445,29 @@ function KasirGoContent({
 
     setCurrentOrderNumber(orderNum);
     setShowReceipt(true);
+
+    // Auto-print if enabled
+    if (printerConfig.autoPrint && printerConfig.enabled && printerConfig.deviceAddress) {
+      setTimeout(async () => {
+        try {
+          await printReceipt('customer', {
+            orderNumber: orderNum,
+            customerName,
+            customerWA,
+            items: cart,
+            subtotal: baseTotalAmount,
+            discount: discountAmount,
+            total: totalAmount,
+            paymentMethod,
+            cashReceived,
+            change,
+            timestamp: new Date()
+          });
+        } catch (error) {
+          console.error('Auto-print failed:', error);
+        }
+      }, 500);
+    }
   };
 
   const handleVoidTransaction = async (id: string) => {
@@ -432,7 +617,14 @@ function KasirGoContent({
         scale: 2,
         backgroundColor: '#ffffff',
         logging: false,
-        useCORS: true
+        useCORS: true,
+        onclone: (clonedDoc) => {
+          const wrapper = clonedDoc.querySelector('.absolute-offscreen');
+          if (wrapper) {
+            (wrapper as HTMLElement).style.position = 'relative';
+            (wrapper as HTMLElement).style.left = '0';
+          }
+        }
       });
 
       const imgData = canvas.toDataURL('image/png');
@@ -782,6 +974,75 @@ function KasirGoContent({
             </div>
 
             <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pr-1">
+              {/* PRINTER CONFIGURATION */}
+              <div className="space-y-4 bg-slate-50/50 p-4 rounded-3xl border border-slate-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <Printer size={14} className="text-slate-500" />
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                    Konfigurasi Printer
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-bold text-slate-600">Aktifkan Printer Bluetooth</span>
+                    <button
+                      onClick={() => updatePrinterConfig({ enabled: !printerConfig.enabled })}
+                      className={cn(
+                        "w-12 h-6 rounded-full transition-all relative",
+                        printerConfig.enabled ? "bg-blue-500" : "bg-slate-300"
+                      )}
+                    >
+                      <div className={cn(
+                        "absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-all",
+                        printerConfig.enabled ? "left-7" : "left-1"
+                      )}></div>
+                    </button>
+                  </div>
+
+                  {printerConfig.enabled && (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] font-bold text-slate-600">Auto-Print Setelah Checkout</span>
+                        <button
+                          onClick={() => updatePrinterConfig({ autoPrint: !printerConfig.autoPrint })}
+                          className={cn(
+                            "w-12 h-6 rounded-full transition-all relative",
+                            printerConfig.autoPrint ? "bg-emerald-500" : "bg-slate-300"
+                          )}
+                        >
+                          <div className={cn(
+                            "absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-all",
+                            printerConfig.autoPrint ? "left-7" : "left-1"
+                          )}></div>
+                        </button>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Pilih Printer</label>
+                        <select
+                          value={printerConfig.deviceAddress || ''}
+                          onChange={(e) => updatePrinterConfig({ deviceAddress: e.target.value })}
+                          className="w-full h-10 px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        >
+                          <option value="">-- Pilih Printer --</option>
+                          {availablePrinters.map(p => (
+                            <option key={p.id} value={p.address}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <button
+                        onClick={loadPrinters}
+                        className="w-full h-8 bg-blue-50 text-blue-600 rounded-lg text-[8px] font-bold uppercase tracking-wider hover:bg-blue-100 transition-all"
+                      >
+                        Scan Printer Terpasang
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
               {/* FORM INPUT MENU BARU */}
               <div className="space-y-4 bg-slate-50/50 p-4 rounded-3xl border border-slate-100">
                 <div className="flex items-center gap-2 mb-1">
@@ -947,44 +1208,80 @@ function KasirGoContent({
             </div>
 
             <div className="grid grid-cols-1 gap-3">
-              <button
-                onClick={() => handlePrint('receipt-kitchen', 'KITCHEN_ORDER')}
-                title="Cetak Struk Dapur"
-                aria-label="Cetak Struk Dapur"
-                className="w-full h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-between px-6 active:scale-95 transition-all group shadow-lg shadow-blue-500/20"
-              >
-                <div className="flex items-center gap-3">
-                  <Utensils size={18} className="text-blue-100" />
-                  <span className="text-[11px] font-black uppercase tracking-widest">STRUK DAPUR</span>
-                </div>
-                <Printer size={14} className="text-blue-300" />
-              </button>
+              {/* STRUK DAPUR */}
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    const tx = { id: generateId(), date: new Date().toISOString(), totalPrice: totalAmount, items: cart, paymentMethod, orderNumber: currentOrderNumber };
+                    await BluetoothPrintService.printReceipt(tx as any, localStorage.getItem('printer_address') || undefined, 'kitchen');
+                  }}
+                  title="Cetak Struk Dapur"
+                  className="flex-1 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-between px-6 active:scale-95 transition-all group shadow-lg shadow-blue-500/20"
+                >
+                  <div className="flex items-center gap-3">
+                    <Utensils size={18} className="text-blue-100" />
+                    <span className="text-[11px] font-black uppercase tracking-widest">STRUK DAPUR</span>
+                  </div>
+                  <Printer size={14} className="text-blue-300" />
+                </button>
+                <button
+                  onClick={() => handlePrint('receipt-kitchen', 'KITCHEN_ORDER')}
+                  className="w-14 h-14 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-center active:scale-95 transition-all border border-slate-100"
+                  title="Simpan PDF"
+                >
+                  <FileDown size={18} />
+                </button>
+              </div>
 
-              <button
-                onClick={() => handlePrint('receipt-customer', 'CUSTOMER_RECEIPT')}
-                title="Cetak Struk Pelanggan"
-                aria-label="Cetak Struk Pelanggan"
-                className="w-full h-14 bg-white border-2 border-slate-100 text-slate-800 rounded-2xl flex items-center justify-between px-6 active:scale-95 transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <Receipt size={18} className="text-emerald-500" />
-                  <span className="text-[11px] font-black uppercase tracking-widest">STRUK PELANGGAN</span>
-                </div>
-                <Printer size={14} className="text-slate-300" />
-              </button>
+              {/* STRUK PELANGGAN */}
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    const tx = { id: generateId(), date: new Date().toISOString(), totalPrice: totalAmount, items: cart, paymentMethod, orderNumber: currentOrderNumber };
+                    await BluetoothPrintService.printReceipt(tx as any, localStorage.getItem('printer_address') || undefined, 'customer');
+                  }}
+                  title="Cetak Struk Pelanggan"
+                  className="flex-1 h-14 bg-white border-2 border-slate-100 text-slate-800 rounded-2xl flex items-center justify-between px-6 active:scale-95 transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <Receipt size={18} className="text-emerald-500" />
+                    <span className="text-[11px] font-black uppercase tracking-widest">STRUK PELANGGAN</span>
+                  </div>
+                  <Printer size={14} className="text-slate-300" />
+                </button>
+                <button
+                  onClick={() => handlePrint('receipt-customer', 'CUSTOMER_RECEIPT')}
+                  className="w-14 h-14 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-center active:scale-95 transition-all border border-slate-100"
+                  title="Simpan PDF"
+                >
+                  <FileDown size={18} />
+                </button>
+              </div>
 
-              <button
-                onClick={() => handlePrint('report-closing', 'CLOSING_REPORT')}
-                title="Cetak Laporan Closing"
-                aria-label="Cetak Laporan Closing"
-                className="w-full h-14 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-between px-6 active:scale-95 transition-all group border border-slate-100"
-              >
-                <div className="flex items-center gap-3">
-                  <TrendingUp size={18} />
-                  <span className="text-[11px] font-black uppercase tracking-widest">LAPORAN CLOSING</span>
-                </div>
-                <Printer size={14} className="text-slate-300" />
-              </button>
+              {/* LAPORAN CLOSING */}
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    const tx = { id: generateId(), date: new Date().toISOString(), totalPrice: totalAmount, items: cart, paymentMethod, orderNumber: currentOrderNumber };
+                    await BluetoothPrintService.printReceipt(tx as any, localStorage.getItem('printer_address') || undefined, 'closing');
+                  }}
+                  title="Cetak Laporan Closing"
+                  className="flex-1 h-14 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-between px-6 active:scale-95 transition-all group border border-slate-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <TrendingUp size={18} />
+                    <span className="text-[11px] font-black uppercase tracking-widest">LAPORAN CLOSING</span>
+                  </div>
+                  <Printer size={14} className="text-slate-300" />
+                </button>
+                <button
+                  onClick={() => handlePrint('report-closing', 'CLOSING_REPORT')}
+                  className="w-14 h-14 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-center active:scale-95 transition-all border border-slate-100"
+                  title="Simpan PDF"
+                >
+                  <FileDown size={18} />
+                </button>
+              </div>
 
               <div className="pt-4 border-t border-slate-50">
                 <button
