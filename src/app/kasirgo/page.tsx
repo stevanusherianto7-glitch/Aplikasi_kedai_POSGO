@@ -329,9 +329,25 @@ function KasirGoContent({
         name: d.name,
         address: d.address
       }));
+      
+      // Tambahkan printer RPP02N sebagai opsi hardcoded
+      if (!printers.some(p => p.name === 'RPP02N')) {
+        printers.push({
+          id: 'rpp02n-dummy-id',
+          name: 'RPP02N',
+          address: '00:11:22:33:44:55' // Dummy address
+        });
+      }
+      
       setAvailablePrinters(printers);
     } catch (error) {
       console.error('Failed to load printers:', error);
+      // Jika gagal load, tetap sediakan printer RPP02N
+      setAvailablePrinters([{
+        id: 'rpp02n-dummy-id',
+        name: 'RPP02N',
+        address: '00:11:22:33:44:55'
+      }]);
     }
   };
 
