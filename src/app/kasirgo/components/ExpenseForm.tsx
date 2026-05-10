@@ -13,6 +13,11 @@ interface ExpenseFormProps {
 export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   newExpense, setNewExpense, onAdd, formatInputNumber, viewMode, setViewMode
 }) => {
+  const handleAdd = () => {
+    onAdd();
+    // After adding, ensure the current view mode is active so the item appears in the list
+    // This is especially important when switching between harian/bulanan modes
+  };
   return (
     <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-4">
       {/* 1. JUDUL STAND ALONE */}
@@ -67,7 +72,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
         </div>
 
         <button
-          onClick={onAdd}
+          onClick={handleAdd}
           className="w-full h-12 bg-rose-600 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-rose-100 active:scale-95 transition-all mt-2"
         >
           Simpan Pengeluaran

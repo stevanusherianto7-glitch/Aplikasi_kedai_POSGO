@@ -30,11 +30,11 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onBack,
             >
               <ArrowLeft size={20} />
             </button>
-            <h1 className="text-xl font-black flex items-center gap-1.5 group">
+            <h1 className="text-xl font-black flex items-center gap-1.5 group z-20 relative">
               <div className="relative">
                 <span className="relative z-10 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent tracking-tighter uppercase">KASIR</span>
               </div>
-              <span className="text-[10px] font-bold text-white bg-blue-500 px-2 py-1 rounded-md tracking-[0.3em] ml-0.5 shadow-lg shadow-blue-500/20">GO</span>
+              <span className="text-[10px] font-bold text-white bg-blue-500 px-2 py-1 rounded-md tracking-[0.3em] ml-0.5 shadow-lg shadow-blue-500/20 z-20 relative">GO</span>
             </h1>
           </div>
 

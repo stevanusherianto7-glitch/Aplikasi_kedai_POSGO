@@ -259,7 +259,7 @@ function AppContent() {
 
         {activeTab === "kasirgo" && (
           <div className="min-h-full">
-            <KasirGoPage 
+            <KasirGoPage
               recipes={products}
               transactions={transactions}
               expenses={expenses}
@@ -267,6 +267,7 @@ function AppContent() {
               pettyCash={pettyCash}
               onProcessTransaction={state.handleProcessTransaction}
               promoEvents={state.promoEvents}
+              paymentMethods={state.paymentMethods}
               onAddExpense={state.handleAddExpense}
               onDeleteExpense={state.handleDeleteExpense}
               onAddDailyIncome={state.handleUpdateDailyIncome}

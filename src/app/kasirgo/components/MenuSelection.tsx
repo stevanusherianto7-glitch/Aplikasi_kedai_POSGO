@@ -12,11 +12,11 @@ interface MenuSelectionProps {
   setIsBillingOpen: (open: boolean) => void;
 }
 
-export const MenuSelection: React.FC<MenuSelectionProps> = ({ 
-  menuItems, cart, addToCart, removeFromCart, updateCartNote 
+export const MenuSelection: React.FC<MenuSelectionProps> = ({
+  menuItems, cart, addToCart, removeFromCart, updateCartNote
 }) => {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
       {menuItems.map(item => {
         const dineInItem = cart.find(c => c.id === item.id && !c.isTakeAway);
         const takeAwayItem = cart.find(c => c.id === item.id && c.isTakeAway);

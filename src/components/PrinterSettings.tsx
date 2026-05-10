@@ -161,13 +161,13 @@ export function PrinterSettings({ theme = 'light', currentTransaction }: { theme
                <div className="grid grid-cols-1 gap-2">
                  <Button 
                    onClick={() => testPrint('customer')}
-                   className="w-full h-12 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+                   className="w-full size-xl bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
                  >
                    Print Struk Customer
                  </Button>
                  <Button 
                    onClick={() => testPrint('kitchen')}
-                   className="w-full h-12 bg-orange-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+                   className="w-full size-xl bg-orange-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
                  >
                    Print Order Dapur (Kitchen)
                  </Button>
