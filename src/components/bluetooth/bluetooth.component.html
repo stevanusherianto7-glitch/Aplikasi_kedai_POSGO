@@ -1,0 +1,85 @@
+<div class="bluetooth-container">
+  <div class="status-bar">
+    <div class="connection-status">
+      <ion-icon [name]="isConnected ? 'checkmark-circle' : 'alert-circle'" 
+                [color]="isConnected ? 'success' : 'danger'"></ion-icon>
+      <span>{{ isConnected ? 'Connected' : 'Disconnected' }}</span>
+      <span *ngIf="connectedDeviceName">- {{ connectedDeviceName }}</span>
+    </div>
+    
+    <div class="action-buttons">
+      <ion-button (click)="scanForDevices()" [disabled]="isScanning">
+        <ion-icon name="refresh"></ion-icon>
+        Scan
+      </ion-button>
+      <ion-button (click)="discoverNewDevices()" [disabled]="isScanning">
+        <ion-icon name="add-circle"></ion-icon>
+        Discover
+      </ion-button>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="isScanning" class="loading-indicator">
+    <ion-spinner name="circles"></ion-spinner>
+    <span>Scanning for devices...</span>
+  </div>
+
+  <div class="devices-section">
+    <h3>Available Devices</h3>
+    <div *ngIf="devices.length === 0 && !isScanning" class="no-devices">
+      <ion-icon name="bluetooth-off"></ion-icon>
+      <p>No devices found. Click "Scan" to search for devices.</p>
+    </div>
+
+    <ion-list>
+      <ion-item *ngFor="let device of devices" (click)="connectToDevice(device)" 
+                [class.selected]="selectedDevice?.address === device.address"
+                [disabled]="isConnecting">
+        <ion-icon [name]="getDeviceIcon(device)" slot="start"></ion-icon>
+        <ion-label>
+          <h2>{{ device.name || 'Unknown Device' }}</h2>
+          <p>{{ device.address }}</p>
+        </ion-label>
+        <ion-icon name="checkmark" slot="end" 
+                  *ngIf="selectedDevice?.address === device.address && isConnected"></ion-icon>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <div *ngIf="selectedDevice" class="connection-controls">
+    <h3>Connected to {{ selectedDevice.name || 'Device' }}</h3>
+    
+    <div class="disconnect-button">
+      <ion-button (click)="disconnectFromDevice()" color="danger" expand="block">
+        <ion-icon name="close-circle"></ion-icon>
+        Disconnect
+      </ion-button>
+    </div>
+
+    <div class="data-transfer">
+      <h4>Send Data</h4>
+      <ion-item>
+        <ion-textarea [(ngModel)]="messageToSend" 
+                      placeholder="Enter message to send..." 
+                      rows="3"></ion-textarea>
+      </ion-item>
+      <ion-button (click)="send()" [disabled]="!messageToSend.trim()" expand="block">
+        <ion-icon name="send"></ion-icon>
+        Send
+      </ion-button>
+    </div>
+
+    <div class="received-data">
+      <div class="data-display">
+        <pre *ngIf="receivedData">{{ receivedData }}</pre>
+        <div *ngIf="!receivedData" class="no-data">
+          No data received yet
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
