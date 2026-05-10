@@ -1362,93 +1362,87 @@ function KasirGoContent({
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Silakan Pilih Jenis Struk</p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-[1fr_64px] gap-x-3 gap-y-4">
               {/* STRUK DAPUR */}
-              <div className="grid grid-cols-[1fr_64px] gap-3">
-                <button
-                  onClick={async () => {
-                    const tx = { id: generateId(), date: new Date().toISOString(), totalPrice: totalAmount, items: cart, paymentMethod, orderNumber: currentOrderNumber };
-                    await BluetoothPrintService.printReceipt(tx as any, localStorage.getItem('printer_address') || undefined, 'kitchen');
-                  }}
-                  title="Cetak Struk Dapur"
-                  className="w-full h-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl flex items-center justify-between px-6 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Utensils size={20} className="text-white" />
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-xs font-black uppercase tracking-wider">STRUK DAPUR</span>
-                    </div>
+              <button
+                onClick={async () => {
+                  const tx = { id: generateId(), date: new Date().toISOString(), totalPrice: totalAmount, items: cart, paymentMethod, orderNumber: currentOrderNumber };
+                  await BluetoothPrintService.printReceipt(tx as any, localStorage.getItem('printer_address') || undefined, 'kitchen');
+                }}
+                title="Cetak Struk Dapur"
+                className="w-full h-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl flex items-center justify-between px-6 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Utensils size={20} className="text-white" />
                   </div>
-                  <Printer size={18} className="text-blue-200 group-hover:translate-x-1 transition-transform" />
-                </button>
-                <button
-                  onClick={() => handlePrint('receipt-kitchen', 'KITCHEN_ORDER')}
-                  className="w-full h-16 bg-rose-900 text-white rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-rose-800 shadow-sm hover:shadow-md hover:bg-rose-800"
-                  title="Simpan PDF"
-                >
-                  <FileDown size={22} className="text-white" />
-                </button>
-              </div>
+                  <div className="flex items-center">
+                    <span className="text-xs font-black uppercase tracking-wider">STRUK DAPUR</span>
+                  </div>
+                </div>
+                <Printer size={18} className="text-blue-200 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button
+                onClick={() => handlePrint('receipt-kitchen', 'KITCHEN_ORDER')}
+                className="w-full h-16 bg-rose-900 text-white rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-rose-800 shadow-sm hover:shadow-md hover:bg-rose-800"
+                title="Simpan PDF"
+              >
+                <FileDown size={22} className="text-white" />
+              </button>
 
               {/* STRUK PELANGGAN */}
-              <div className="grid grid-cols-[1fr_64px] gap-3">
-                <button
-                  onClick={async () => {
-                    const tx = { id: generateId(), date: new Date().toISOString(), totalPrice: totalAmount, items: cart, paymentMethod, orderNumber: currentOrderNumber };
-                    await BluetoothPrintService.printReceipt(tx as any, localStorage.getItem('printer_address') || undefined, 'customer');
-                  }}
-                  title="Cetak Struk Pelanggan"
-                  className="w-full h-16 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl flex items-center justify-between px-6 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Receipt size={20} className="text-white" />
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-xs font-black uppercase tracking-wider">STRUK PELANGGAN</span>
-                    </div>
+              <button
+                onClick={async () => {
+                  const tx = { id: generateId(), date: new Date().toISOString(), totalPrice: totalAmount, items: cart, paymentMethod, orderNumber: currentOrderNumber };
+                  await BluetoothPrintService.printReceipt(tx as any, localStorage.getItem('printer_address') || undefined, 'customer');
+                }}
+                title="Cetak Struk Pelanggan"
+                className="w-full h-16 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl flex items-center justify-between px-6 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Receipt size={20} className="text-white" />
                   </div>
-                  <Printer size={18} className="text-emerald-200 group-hover:translate-x-1 transition-transform" />
-                </button>
-                <button
-                  onClick={() => handlePrint('receipt-customer', 'CUSTOMER_RECEIPT')}
-                  className="w-full h-16 bg-rose-900 text-white rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-rose-800 shadow-sm hover:shadow-md hover:bg-rose-800"
-                  title="Simpan PDF"
-                >
-                  <FileDown size={22} className="text-white" />
-                </button>
-              </div>
+                  <div className="flex items-center">
+                    <span className="text-xs font-black uppercase tracking-wider">STRUK PELANGGAN</span>
+                  </div>
+                </div>
+                <Printer size={18} className="text-emerald-200 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button
+                onClick={() => handlePrint('receipt-customer', 'CUSTOMER_RECEIPT')}
+                className="w-full h-16 bg-rose-900 text-white rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-rose-800 shadow-sm hover:shadow-md hover:bg-rose-800"
+                title="Simpan PDF"
+              >
+                <FileDown size={22} className="text-white" />
+              </button>
 
               {/* LAPORAN CLOSING */}
-              <div className="grid grid-cols-[1fr_64px] gap-3">
-                <button
-                  onClick={async () => {
-                    const tx = { id: generateId(), date: new Date().toISOString(), totalPrice: totalAmount, items: cart, paymentMethod, orderNumber: currentOrderNumber };
-                    await BluetoothPrintService.printReceipt(tx as any, localStorage.getItem('printer_address') || undefined, 'closing');
-                  }}
-                  title="Cetak Laporan Closing"
-                  className="w-full h-16 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-2xl flex items-center justify-between px-6 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group shadow-lg shadow-slate-700/25 hover:shadow-slate-700/40"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <TrendingUp size={20} className="text-white" />
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-xs font-black uppercase tracking-wider">LAPORAN CLOSING</span>
-                    </div>
+              <button
+                onClick={async () => {
+                  const tx = { id: generateId(), date: new Date().toISOString(), totalPrice: totalAmount, items: cart, paymentMethod, orderNumber: currentOrderNumber };
+                  await BluetoothPrintService.printReceipt(tx as any, localStorage.getItem('printer_address') || undefined, 'closing');
+                }}
+                title="Cetak Laporan Closing"
+                className="w-full h-16 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-2xl flex items-center justify-between px-6 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group shadow-lg shadow-slate-700/25 hover:shadow-slate-700/40"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <TrendingUp size={20} className="text-white" />
                   </div>
-                  <Printer size={18} className="text-slate-400 group-hover:translate-x-1 transition-transform" />
-                </button>
-                <button
-                  onClick={() => handlePrint('report-closing', 'CLOSING_REPORT')}
-                  className="w-full h-16 bg-rose-900 text-white rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-rose-800 shadow-sm hover:shadow-md hover:bg-rose-800"
-                  title="Simpan PDF"
-                >
-                  <FileDown size={22} className="text-white" />
-                </button>
-              </div>
+                  <div className="flex items-center">
+                    <span className="text-xs font-black uppercase tracking-wider">LAPORAN CLOSING</span>
+                  </div>
+                </div>
+                <Printer size={18} className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button
+                onClick={() => handlePrint('report-closing', 'CLOSING_REPORT')}
+                className="w-full h-16 bg-rose-900 text-white rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-rose-800 shadow-sm hover:shadow-md hover:bg-rose-800"
+                title="Simpan PDF"
+              >
+                <FileDown size={22} className="text-white" />
+              </button>
 
               <div className="pt-4 border-t border-slate-100">
                 <button
