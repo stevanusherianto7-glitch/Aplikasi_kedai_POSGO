@@ -1411,7 +1411,7 @@ function KasirGoContent({
                     </div>
                   </div>
                   <Printer size={18} className="text-emerald-200 group-hover:translate-x-1 transition-transform" />
-                </</button>
+                </button>
                 <button
                   onClick={() => handlePrint('receipt-customer', 'CUSTOMER_RECEIPT')}
                   className="w-full h-16 bg-rose-900 text-white rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-rose-800 shadow-sm hover:shadow-md hover:bg-rose-800"
