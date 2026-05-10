@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Utensils, ShoppingBag, Plus, Minus, X } from 'lucide-react';
 import { MenuItem, CartItem } from '../types';
 import { formatIDR } from '@/lib/utils';
-import { getSupabasePublicUrl, getPlaceholderUrl } from './lib/supabaseStorage';
+import { getSupabasePublicUrl, getPlaceholderUrl } from '../lib/supabaseStorage';
 
 interface MenuSelectionProps {
   menuItems: MenuItem[];

@@ -23,9 +23,9 @@ export function usePOS() {
         // Map Supabase columns to app properties
         const mappedData = data.map((item: any) => ({
           id: item.id,
-          name: item.name || 'Tanpa Nama',
-          price: item.price || 0,
-          category: item.category || 'Lainnya',
+          name: item.nama_menu || 'Tanpa Nama',
+          price: item.harga || 0,
+          category: item.kategori || 'Lainnya',
           image_url: item.image_url
         }));
         setMenuItems(mappedData);
