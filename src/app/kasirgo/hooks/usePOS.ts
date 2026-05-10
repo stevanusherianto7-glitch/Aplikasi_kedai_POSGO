@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MENU_ITEMS } from '../constants';
 import { CartItem, ExpenseItem, Transaction, MenuItem } from '../types';
 import { getCurrentFormattedDate } from '../utils/format';
+import { supabase } from '@/lib/supabase';
 
 export function usePOS() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -12,6 +13,30 @@ export function usePOS() {
     Array.from(new Set<string>(MENU_ITEMS.map(item => item.category)))[0] || ''
   );
   const [history, setHistory] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    async function fetchMenus() {
+      const { data, error } = await supabase.from('menu_items').select('*');
+      if (error) {
+        console.error('Error fetching menus:', error);
+      } else if (data) {
+        // Map Supabase columns to app properties
+        const mappedData = data.map((item: any) => ({
+          id: item.id,
+          name: item.name || 'Tanpa Nama',
+          price: item.price || 0,
+          category: item.category || 'Lainnya',
+          image_url: item.image_url
+        }));
+        setMenuItems(mappedData);
+        if (mappedData.length > 0) {
+          const cats = Array.from(new Set<string>(mappedData.map(item => item.category)));
+          setActiveCategory(cats[0] || '');
+        }
+      }
+    }
+    fetchMenus();
+  }, []);
   
   // Petty Cash States
   const [initialCash, setInitialCash] = useState<number>(0);
