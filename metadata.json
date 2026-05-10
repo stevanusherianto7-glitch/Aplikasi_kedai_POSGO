@@ -1,0 +1,9 @@
+{
+  "name": "POSGO",
+  "description": "Sistem Kasir (Point of Sale) Modern untuk UMKM Warung Makan.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
