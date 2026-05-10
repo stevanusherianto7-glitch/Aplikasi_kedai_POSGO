@@ -1377,19 +1377,18 @@ function KasirGoContent({
                     <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Utensils size={20} className="text-white" />
                     </div>
-                    <div className="flex flex-col items-start">
+                    <div className="flex items-center">
                       <span className="text-xs font-black uppercase tracking-wider">STRUK DAPUR</span>
-                      <span className="text-[10px] text-blue-100 font-medium">Untuk Area Dapur</span>
                     </div>
                   </div>
                   <Printer size={18} className="text-blue-200 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
                   onClick={() => handlePrint('receipt-kitchen', 'KITCHEN_ORDER')}
-                  className="w-16 h-16 bg-white/80 backdrop-blur-sm text-slate-600 rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-slate-200/60 shadow-sm hover:shadow-md hover:bg-slate-50"
+                  className="w-16 h-16 bg-rose-900 text-white rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-rose-800 shadow-sm hover:shadow-md hover:bg-rose-800"
                   title="Simpan PDF"
                 >
-                  <FileDown size={22} className="text-slate-500" />
+                  <FileDown size={22} className="text-white" />
                 </button>
               </div>
 
@@ -1407,19 +1406,18 @@ function KasirGoContent({
                     <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Receipt size={20} className="text-white" />
                     </div>
-                    <div className="flex flex-col items-start">
+                    <div className="flex items-center">
                       <span className="text-xs font-black uppercase tracking-wider">STRUK PELANGGAN</span>
-                      <span className="text-[10px] text-emerald-100 font-medium">Untuk Pelanggan</span>
                     </div>
                   </div>
                   <Printer size={18} className="text-emerald-200 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
                   onClick={() => handlePrint('receipt-customer', 'CUSTOMER_RECEIPT')}
-                  className="w-16 h-16 bg-white/80 backdrop-blur-sm text-slate-600 rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-slate-200/60 shadow-sm hover:shadow-md hover:bg-slate-50"
+                  className="w-16 h-16 bg-rose-900 text-white rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-rose-800 shadow-sm hover:shadow-md hover:bg-rose-800"
                   title="Simpan PDF"
                 >
-                  <FileDown size={22} className="text-slate-500" />
+                  <FileDown size={22} className="text-white" />
                 </button>
               </div>
 
@@ -1437,19 +1435,18 @@ function KasirGoContent({
                     <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                       <TrendingUp size={20} className="text-white" />
                     </div>
-                    <div className="flex flex-col items-start">
+                    <div className="flex items-center">
                       <span className="text-xs font-black uppercase tracking-wider">LAPORAN CLOSING</span>
-                      <span className="text-[10px] text-slate-300 font-medium">Rekapitulasi Shift</span>
                     </div>
                   </div>
                   <Printer size={18} className="text-slate-400 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
                   onClick={() => handlePrint('report-closing', 'CLOSING_REPORT')}
-                  className="w-16 h-16 bg-white/80 backdrop-blur-sm text-slate-600 rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-slate-200/60 shadow-sm hover:shadow-md hover:bg-slate-50"
+                  className="w-16 h-16 bg-rose-900 text-white rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-rose-800 shadow-sm hover:shadow-md hover:bg-rose-800"
                   title="Simpan PDF"
                 >
-                  <FileDown size={22} className="text-slate-500" />
+                  <FileDown size={22} className="text-white" />
                 </button>
               </div>
 
