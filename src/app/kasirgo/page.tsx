@@ -1121,6 +1121,8 @@ function KasirGoContent({
                     <span className="text-[9px] font-bold text-slate-600">Aktifkan Printer Bluetooth</span>
                     <button
                       onClick={() => updatePrinterConfig({ enabled: !printerConfig.enabled })}
+                      title="Aktifkan Printer Bluetooth"
+                      aria-label="Aktifkan Printer Bluetooth"
                       className={cn(
                         "w-12 h-6 rounded-full transition-all relative",
                         printerConfig.enabled ? "bg-blue-500" : "bg-slate-300"
@@ -1139,6 +1141,8 @@ function KasirGoContent({
                         <span className="text-[9px] font-bold text-slate-600">Auto-Print Setelah Checkout</span>
                         <button
                           onClick={() => updatePrinterConfig({ autoPrint: !printerConfig.autoPrint })}
+                          title="Auto-Print Setelah Checkout"
+                          aria-label="Auto-Print Setelah Checkout"
                           className={cn(
                             "w-12 h-6 rounded-full transition-all relative",
                             printerConfig.autoPrint ? "bg-emerald-500" : "bg-slate-300"
@@ -1152,8 +1156,10 @@ function KasirGoContent({
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Pilih Printer</label>
+                        <label htmlFor="select-printer" className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Pilih Printer</label>
                         <select
+                          id="select-printer"
+                          title="Pilih Printer"
                           value={printerConfig.deviceAddress || ''}
                           onChange={(e) => updatePrinterConfig({ deviceAddress: e.target.value })}
                           className="w-full h-10 px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
@@ -1330,98 +1336,113 @@ function KasirGoContent({
 
       {/* SUCCESS MODAL */}
       {showReceipt && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[200]">
-          <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-sm space-y-6 shadow-2xl animate-in zoom-in-95 duration-300">
-            <div className="text-center space-y-2">
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto shadow-inner mb-2">
-                 <Check size={32} strokeWidth={3} />
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 z-[200] animate-in fade-in duration-300">
+          <div className="bg-white/90 backdrop-blur-2xl rounded-[3rem] p-8 w-full max-w-md space-y-6 shadow-2xl border border-white/20 animate-in zoom-in-95 duration-500">
+            <div className="text-center space-y-3">
+              <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-teal-500 text-white rounded-3xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20 mb-2 transform hover:rotate-12 transition-transform duration-300">
+                 <Check size={40} strokeWidth={3} />
               </div>
-              <h2 className="text-lg font-black text-slate-800 tracking-tight">TRANSAKSI SELESAI</h2>
+              <h2 className="text-2xl font-black text-slate-800 tracking-tight">TRANSAKSI SELESAI</h2>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Silakan Pilih Jenis Struk</p>
             </div>
 
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-4">
               {/* STRUK DAPUR */}
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={async () => {
                     const tx = { id: generateId(), date: new Date().toISOString(), totalPrice: totalAmount, items: cart, paymentMethod, orderNumber: currentOrderNumber };
                     await BluetoothPrintService.printReceipt(tx as any, localStorage.getItem('printer_address') || undefined, 'kitchen');
                   }}
                   title="Cetak Struk Dapur"
-                  className="flex-1 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-between px-6 active:scale-95 transition-all group shadow-lg shadow-blue-500/20"
+                  className="flex-1 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl flex items-center justify-between px-6 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
                 >
                   <div className="flex items-center gap-3">
-                    <Utensils size={18} className="text-blue-100" />
-                    <span className="text-[11px] font-black uppercase tracking-widest">STRUK DAPUR</span>
+                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Utensils size={20} className="text-white" />
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-xs font-black uppercase tracking-wider">STRUK DAPUR</span>
+                      <span className="text-[10px] text-blue-100 font-medium">Untuk Area Dapur</span>
+                    </div>
                   </div>
-                  <Printer size={14} className="text-blue-300" />
+                  <Printer size={18} className="text-blue-200 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
                   onClick={() => handlePrint('receipt-kitchen', 'KITCHEN_ORDER')}
-                  className="w-14 h-14 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-center active:scale-95 transition-all border border-slate-100"
+                  className="w-16 h-16 bg-white/80 backdrop-blur-sm text-slate-600 rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-slate-200/60 shadow-sm hover:shadow-md hover:bg-slate-50"
                   title="Simpan PDF"
                 >
-                  <FileDown size={18} />
+                  <FileDown size={22} className="text-slate-500" />
                 </button>
               </div>
 
               {/* STRUK PELANGGAN */}
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={async () => {
                     const tx = { id: generateId(), date: new Date().toISOString(), totalPrice: totalAmount, items: cart, paymentMethod, orderNumber: currentOrderNumber };
                     await BluetoothPrintService.printReceipt(tx as any, localStorage.getItem('printer_address') || undefined, 'customer');
                   }}
                   title="Cetak Struk Pelanggan"
-                  className="flex-1 h-14 bg-white border-2 border-slate-100 text-slate-800 rounded-2xl flex items-center justify-between px-6 active:scale-95 transition-all group"
+                  className="flex-1 h-16 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl flex items-center justify-between px-6 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40"
                 >
                   <div className="flex items-center gap-3">
-                    <Receipt size={18} className="text-emerald-500" />
-                    <span className="text-[11px] font-black uppercase tracking-widest">STRUK PELANGGAN</span>
+                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Receipt size={20} className="text-white" />
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-xs font-black uppercase tracking-wider">STRUK PELANGGAN</span>
+                      <span className="text-[10px] text-emerald-100 font-medium">Untuk Pelanggan</span>
+                    </div>
                   </div>
-                  <Printer size={14} className="text-slate-300" />
+                  <Printer size={18} className="text-emerald-200 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
                   onClick={() => handlePrint('receipt-customer', 'CUSTOMER_RECEIPT')}
-                  className="w-14 h-14 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-center active:scale-95 transition-all border border-slate-100"
+                  className="w-16 h-16 bg-white/80 backdrop-blur-sm text-slate-600 rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-slate-200/60 shadow-sm hover:shadow-md hover:bg-slate-50"
                   title="Simpan PDF"
                 >
-                  <FileDown size={18} />
+                  <FileDown size={22} className="text-slate-500" />
                 </button>
               </div>
 
               {/* LAPORAN CLOSING */}
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={async () => {
                     const tx = { id: generateId(), date: new Date().toISOString(), totalPrice: totalAmount, items: cart, paymentMethod, orderNumber: currentOrderNumber };
                     await BluetoothPrintService.printReceipt(tx as any, localStorage.getItem('printer_address') || undefined, 'closing');
                   }}
                   title="Cetak Laporan Closing"
-                  className="flex-1 h-14 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-between px-6 active:scale-95 transition-all group border border-slate-100"
+                  className="flex-1 h-16 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-2xl flex items-center justify-between px-6 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group shadow-lg shadow-slate-700/25 hover:shadow-slate-700/40"
                 >
                   <div className="flex items-center gap-3">
-                    <TrendingUp size={18} />
-                    <span className="text-[11px] font-black uppercase tracking-widest">LAPORAN CLOSING</span>
+                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <TrendingUp size={20} className="text-white" />
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-xs font-black uppercase tracking-wider">LAPORAN CLOSING</span>
+                      <span className="text-[10px] text-slate-300 font-medium">Rekapitulasi Shift</span>
+                    </div>
                   </div>
-                  <Printer size={14} className="text-slate-300" />
+                  <Printer size={18} className="text-slate-400 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
                   onClick={() => handlePrint('report-closing', 'CLOSING_REPORT')}
-                  className="w-14 h-14 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-center active:scale-95 transition-all border border-slate-100"
+                  className="w-16 h-16 bg-white/80 backdrop-blur-sm text-slate-600 rounded-2xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-slate-200/60 shadow-sm hover:shadow-md hover:bg-slate-50"
                   title="Simpan PDF"
                 >
-                  <FileDown size={18} />
+                  <FileDown size={22} className="text-slate-500" />
                 </button>
               </div>
 
-              <div className="pt-4 border-t border-slate-50">
+              <div className="pt-4 border-t border-slate-100">
                 <button
                   onClick={() => resetOrder()}
-                  className="w-full h-12 text-blue-500 text-[10px] font-black uppercase hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+                  className="w-full h-14 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30"
                 >
-                  <Plus size={14} />
+                  <Plus size={16} strokeWidth={3} />
                   TRANSAKSI BARU
                 </button>
               </div>
@@ -1437,7 +1458,10 @@ function KasirGoContent({
           <div className="receipt-header">
             <div className="kitchen-brand">PESANAN KITCHEN</div>
             <div className="kitchen-order-no">#{String(currentOrderNumber).padStart(3, '0')}</div>
-            <div className="receipt-info">{formatDate(new Date())} {new Date().toLocaleTimeString('id-ID')}</div>
+            <div className="receipt-info">
+              <div className="receipt-row"><span className="receipt-label">Tgl:</span><span className="receipt-value">{new Date().toLocaleDateString('id-ID')}</span></div>
+              <div className="receipt-row"><span className="receipt-label">Jam:</span><span className="receipt-value">{new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span></div>
+            </div>
           </div>
           <div className="receipt-divider"></div>
           <div className="receipt-body">
@@ -1553,6 +1577,7 @@ function KasirGoContent({
             <div className="receipt-brand-large">Kedai Elvera 57</div>
             <div className="receipt-address">Jl. Pertanian No. 57</div>
             <div className="receipt-address">Lebak Bulus, Jakarta Selatan</div>
+            <div className="receipt-address">WA: 0895-3763-48626</div>
           </div>
           <div className="receipt-divider"></div>
           <div className="report-title">LAPORAN REKAPITULASI</div>
@@ -1567,9 +1592,9 @@ function KasirGoContent({
           <div className="report-section-title">DETAIL TRANSAKSI</div>
           <div className="receipt-body">
             {itemsSold.length > 0 ? itemsSold.map(([name, qty], idx) => (
-              <div key={idx} className="receipt-row">
-                <span className="receipt-label">{name}</span>
-                <span className="receipt-value">x {qty}</span>
+              <div key={idx} className="receipt-row font-bold">
+                <span>{name}</span>
+                <span>x {qty}</span>
               </div>
             )) : <div className="receipt-row"><span className="receipt-label">-</span><span className="receipt-value">0</span></div>}
           </div>
@@ -1577,9 +1602,9 @@ function KasirGoContent({
           <div className="report-section-title">TRANSAKSI VOID</div>
           <div className="receipt-body">
             {(voidedTransactions || []).length > 0 ? voidedTransactions.map((tx, idx) => (
-              <div key={idx} className="receipt-row">
-                <span className="receipt-label">#{formatTransactionNumber(tx.timestamp || tx.date, tx.orderNumber)}</span>
-                <span className="receipt-value">{formatNumber(tx.totalPrice || tx.total || 0)}</span>
+              <div key={idx} className="receipt-row font-bold">
+                <span>#{formatTransactionNumber(tx.timestamp || tx.date, tx.orderNumber)}</span>
+                <span>{formatNumber(tx.totalPrice || tx.total || 0)}</span>
               </div>
             )) : (
               <div className="receipt-row">
